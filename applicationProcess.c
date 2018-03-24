@@ -7,23 +7,41 @@
 #include <mqueue.h>
 
 #define MSG_SIZE 256
+#define QUEUE_NAME  "/filesToHash"
 #define SLAVE_QTY 4
+
+extern int errno;
 
 int main(int argc, char * argv[]) 
 {
 	struct mq_attr attributes;
 	mqd_t mqDescriptor;
-	unsigned int priority;
+
+	attributes.mq_maxmsg = argc - 1;
+	attributes.mq_msgsize = MSG_SIZE;
+	attributes.mq_flags = O_NONBLOCK;
+
+	mqDescriptor = mq_open (QUEUE_NAME, O_WRONLY| O_CREAT, 0666, &attributes);
+	if (mqDescriptor < 0)
+	{
+			fprintf(stderr, "mq_open Failed\n");
+			perror("mq_open Failed\n");
+			exit(1);
+	}
+
+	for(int i = 0 ; i < argc - 1; i++)
+	{
+		if(mq_send(mqDescriptor, argv[i+1], MSG_SIZE, 0) < 0)
+		{
+			fprintf(stderr, "mq_send Failed\n");
+			perror("mq_send Failed\n");
+			exit(1);
+		}
+	}
+
 
 	int status[SLAVE_QTY];
 	pid_t childs[SLAVE_QTY];
-
-	attributes.mq_maxmsg = argc -1;
-	attributes.mq_msgsize = MSG_SIZE;
-	attributes.mq_flags = MQ_NONBLOCK;
-
-	mqDescriptor = mq_open ("filesToHashMQ", O_WRONLY | O_NONBLOCK, 0664, &attributes);
-	
 
 	for (int i = 0; i < SLAVE_QTY; i++)
 	{ 
@@ -48,5 +66,7 @@ int main(int argc, char * argv[])
 		waitpid(childs[j], &(status[j]), 0);
 	}
 	printf("All Child process finished.\n");
+	mq_unlink(QUEUE_NAME);
 	return 0;
 }
+
