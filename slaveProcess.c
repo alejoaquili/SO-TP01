@@ -32,7 +32,7 @@ int main(void)
 		}
 	}
 	mq_close(mqDescriptor);
-
+	fileToHash[bytesRead] = 0;
 
 	pid_t child;
 	int fd[2];
@@ -63,10 +63,12 @@ int main(void)
 	{
 		char buf[MSG_SIZE + MD5SUM_LENGTH];
 		close(fd[1]);
-    		read(fd[0], buf, sizeof(buf));
+    	read(fd[0], buf, sizeof(buf));
+
 		char new [300];
-    		sprintf(new, "%s %s", "HASH: ", buf);
-    		printf("%s\n", new);
+		fflush(stdout);
+    	sprintf(new, "%s %s%c", "HASH: ", buf,0);
+    	printf("%s\n", new);
 		exit(1);
 	}
 	return 0;

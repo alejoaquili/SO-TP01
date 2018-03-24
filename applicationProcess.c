@@ -65,6 +65,7 @@ int main(int argc, char * argv[])
 	{
 		waitpid(childs[j], &(status[j]), 0);
 	}
+	fflush(stdout);
 	printf("All Child process finished.\n");
 	mq_unlink(QUEUE_NAME);
 	return 0;
