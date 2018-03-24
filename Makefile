@@ -6,26 +6,22 @@
 # ------------------------------------------------
 include Makefile.inc
 
-TARGET   = SO-TP01
-
 SOURCES  := $(wildcard *.c)
 OBJECTS  := $(SOURCES:.c=*.o)
 rm       = rm -f
 
-all: clean $(TARGET) run
-$(TARGET): obj
-	@$(LINKER) $(TARGET) $(LFLAGS) $(OBJECTS)
-	@echo "Linking complete."
+all: clean obj run
+
 
 obj: $(SOURCES) 
 	@$(CC) $(CFLAGS) $(SOURCES)
-	@echo "Compilation complete."
+	@echo "Compilation and Linking complete."
 
 clean:
 	@$(rm) $(TARGET) $(OBJECTS)
 	@echo "Cleanup complete."
 
 run:
-	./$(TARGET)
+	./applicationProcess.out c.out true.out p.c
 
-.PHONY: clean  all run
+.PHONY: clean  all obj run
