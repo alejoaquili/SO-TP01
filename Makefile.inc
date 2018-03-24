@@ -1,8 +1,4 @@
 
-CC       = gcc -std=c99 -Wall -pedantic -c
+CC       = gcc
 # Compiling Flags:
-CFLAGS   = -Wall -pedantic -std=c99 -I./include
-
-LINKER   = gcc -o
-# Linking Flags:
-LFLAGS   = -Wall
+CFLAGS   = -Wall -pedantic -std=c99 -lrt -I./include
