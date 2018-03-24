@@ -8,7 +8,7 @@
 
 #define MSG_SIZE 256
 #define QUEUE_NAME  "/filesToHash"
-#define SLAVE_QTY 4
+#define SLAVE_QTY 1
 
 extern int errno;
 
@@ -25,7 +25,7 @@ int main(int argc, char * argv[])
 	if (mqDescriptor < 0)
 	{
 			fprintf(stderr, "mq_open Failed\n");
-			perror("mq_open Failed\n");
+			perror("mq_open Failed");
 			exit(1);
 	}
 
@@ -34,7 +34,7 @@ int main(int argc, char * argv[])
 		if(mq_send(mqDescriptor, argv[i+1], MSG_SIZE, 0) < 0)
 		{
 			fprintf(stderr, "mq_send Failed\n");
-			perror("mq_send Failed\n");
+			perror("mq_send Failed");
 			exit(1);
 		}
 	}
@@ -49,14 +49,14 @@ int main(int argc, char * argv[])
 		if(childs[i] < 0)
 		{
 			fprintf(stderr, "Fork Failed\n");
-			perror("Fork Failed\n");
+			perror("Fork Failed");
 			exit(1);
 		}
 		else if (childs[i] == 0)
 		{
 			execlp("./slaveProcess.out", " ", ((char *)NULL));
 			fprintf(stderr, "Exec Failed\n");
-			perror("Exec Failed\n");
+			perror("Exec Failed");
 			exit(1);
 		}
 	}
