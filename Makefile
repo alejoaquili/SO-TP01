@@ -4,24 +4,21 @@
 # Author: aaquili@itba.edu.ar
 # Date  : 23-03-2018
 # ------------------------------------------------
-include Makefile.inc
+all: application slave run
 
-SOURCES  := $(wildcard *.c)
-OBJECTS  := $(SOURCES:.c=*.o)
-rm       = rm -f
+application:
+	cd Application; make all
 
-all: clean obj run
-
-
-obj: $(SOURCES) 
-	@$(CC) $(CFLAGS) $(SOURCES)
-	@echo "Compilation and Linking complete."
+slave:
+	cd Slave; make all
 
 clean:
-	@$(rm) $(TARGET) $(OBJECTS)
-	@echo "Cleanup complete."
+	cd Application; make clean
+	cd Slave; make clean
 
-run:
-	./applicationProcess.out c.out true.out p.c
-
-.PHONY: clean  all obj run
+run: 
+	@chmod 777 ./run.sh
+	@echo "Running"
+	@./run.sh
+	
+.PHONY: application slave clean all
