@@ -7,11 +7,12 @@
 #include <errno.h>
 #include <mqueue.h>
 #include "errorslib.h"
+#include <stdarg.h>
 
 #define MSG_SIZE 256
 #define QUEUE_NAME  "/filesToHash"
-#define FIFO_NAME_PATH "/tmp/slave"
-#define SLAVE_QTY 1
+#define FIFO_NAME_PATH "./tmp/slave"
+#define SLAVE_QTY 2
 #define SLAVE_NAME "./Slave/slaveProcess.out"
 
 extern int errno;
@@ -45,7 +46,7 @@ int main(int argc, char * argv[])
 	printf("All Child process finished.\n");
 	mq_unlink(QUEUE_NAME);
 
-	//freeSpace(&mqDescriptor, childs);
+	freeSpace(1, childs);
 	return 0;
 }
 
@@ -86,7 +87,7 @@ pid_t * childFactory(int qty, char* childName, int * fifoFds)
 		if (childs[i] == 0)
 		{
 			sprintf(fifoName, "%s%d%c", FIFO_NAME_PATH, i+1,'\0');
-			//checkFail(mkfifo(fifoName, 0666), "mkfifo Failed");
+			checkFail(mkfifo(fifoName, 0666), "mkfifo Failed");
 			//fifoFds[i] = open(fifoName, O_RDONLY);
 			execlp(childName, fifoName, ((char *)NULL));
 			fail("Exec Failed");
@@ -95,16 +96,14 @@ pid_t * childFactory(int qty, char* childName, int * fifoFds)
 	return childs;
 }
 
-/*
-void freeSpace(void * memory, ...) 
+void freeSpace(int qty, void * memory, ...) 
 {
 	va_list args;
-    va_start(args, qty);
+    va_start(args, memory);
 
     for (int i = 0; i < qty; i++)
     {
-        free(va_args(args, i));
+        free(va_arg(args, void*));
     }
     va_end(args);
 }
-*/
