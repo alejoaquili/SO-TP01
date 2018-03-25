@@ -10,7 +10,7 @@
 #define MSG_SIZE 256
 #define QUEUE_NAME  "/filesToHash"
 #define SLAVE_QTY 1
-#define SLAVE_NAME "./Slave/slaveProcess"
+#define SLAVE_NAME "./Slave/slaveProcess.out"
 
 extern int errno;
 
