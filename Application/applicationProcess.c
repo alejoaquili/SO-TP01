@@ -11,7 +11,7 @@
 
 #define MSG_SIZE 256
 #define QUEUE_NAME  "/filesToHash"
-#define FIFO_NAME_PATH "./tmp/slave"
+#define FIFO_NAME_PATH "./Fifos/slave"
 #define SLAVE_QTY 2
 #define SLAVE_NAME "./Slave/slaveProcess.out"
 
