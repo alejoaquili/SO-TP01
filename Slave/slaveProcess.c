@@ -16,13 +16,10 @@ int main(void)
 	mqd_t mqDescriptor;
 	char fileToHash[MSG_SIZE];
 	ssize_t bytesRead;
+
 	mqDescriptor = mq_open(QUEUE_NAME, O_RDONLY | O_NONBLOCK);
-	if (mqDescriptor < 0)
-	{
-			fprintf(stderr, "mq_open Failed\n");
-			perror("mq_open Failed");
-			exit(1);
-	}
+	checkFail(mqDescriptor, "mq_open Failed");
+	
 	while((bytesRead = mq_receive(mqDescriptor, fileToHash, MSG_SIZE, NULL)) > 0)
 	{
 		fileToHash[bytesRead] = 0;

@@ -24,22 +24,10 @@ int main(int argc, char * argv[])
 	int* status;
 	struct mq_attr attributes;
 
-	attributes.mq_maxmsg = argc - 1;
-	attributes.mq_msgsize = MSG_SIZE;
-	attributes.mq_flags = O_NONBLOCK;
-
+	setAttributes(&attributes, argc - 1, MSG_SIZE, O_NONBLOCK);
 	mqDescriptor = messageQueueCreator(QUEUE_NAME, O_WRONLY| O_CREAT, &attributes);
 
-	for(int i = 0 ; i < argc - 1; i++)
-	{
-		if(mq_send(mqDescriptor, argv[i+1], MSG_SIZE, 0) < 0)
-		{
-			fprintf(stderr, "mq_send Failed\n");
-			perror("mq_send Failed");
-			exit(1);
-		}
-	}
-
+	sendMessages(mqDescriptor, argv + 1, argc - 1, MSG_SIZE);
 	childs = childFactory(SLAVE_QTY, SLAVE_NAME);
 	status = calloc(SLAVE_QTY, sizeof(int));
 
@@ -55,14 +43,30 @@ int main(int argc, char * argv[])
 	return 0;
 }
 
-mqd_t messageQueueCreator(char* name, long flags1, struct mq_attr* attributes) 
+void setAttributes(struct mq_attr* attributes, long maxMsg, long msgSize, long flags)
+{
+	attributes->mq_maxmsg = maxMsg;
+	attributes->mq_msgsize = msgSize;
+	attributes->mq_flags = flags;
+}
+
+mqd_t messageQueueCreator(char* name, long flags, struct mq_attr* attributes) 
 {
 	mqd_t* mqDescriptor = malloc(sizeof(mqd_t));
 
-	*mqDescriptor = mq_open(name, flags1, 0666, attributes);
+	*mqDescriptor = mq_open(name, flags, 0666, attributes);
 	checkFail(*mqDescriptor, "mq_open Failed");
 
 	return *mqDescriptor;
+}
+
+void sendMessages(mqd_t mqDescriptor, char** msgs, int qty, int msgSize) 
+{
+	for(int i = 0 ; i < qty; i++)
+	{
+		int result = mq_send(mqDescriptor, msgs[i], msgSize, 0);
+		checkFail(result, "mq_send Failed");
+	}
 }
 
 pid_t * childFactory(int qty, char* childName)
