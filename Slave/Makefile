@@ -8,21 +8,29 @@ include Makefile.inc
 
 TARGET := slaveProcess
 SOURCES := $(wildcard *.c)
+OBJECTS := $(SOURCES:.c=.o)
 OUTPUTS := $(SOURCES:.c=.out)
 rm       = rm -rf
 
 
-all: clean obj
+all: clean comp link
 
-obj:$(SOURCES)
-	$(CC) $(CFLAGS) $(SOURCES) -o $(TARGET).out -lrt
+comp:$(SOURCES)
+	$(CC) $(CFLAGS) $(SOURCES) -lrt
 	@echo "Slave Compilation complete."
 
-%.out : %.c
+link:$(OBJECTS)
+	$(LINKER) $(LFLAGS) $(OBJECTS) ./../Utils/errorslib.o -o $(TARGET).out -lrt
+	@echo "Slave Linking complete."
+
+%.o : %.c
 	$(CC) $(CFLAGS) $< -o $@ -lrt
+
+%.out : %.o
+	$(LINKER) $(LFLAGS) $< -o $@ -lrt
 
 clean:
 	@$(rm) $(OUTPUTS)
 	@echo "Slave Cleanup complete."
 
-.PHONY: clean  all obj 
+.PHONY: clean  all obj  

@@ -1,7 +1,7 @@
-#include <stdin.h>
-#include <stdout.h>
-#include <math.h>
-#include "testlib.h"
+//#include <stdin.h>
+//#include <stdout.h>
+//#include <math.h>
+//#include "testlib.h"
 
 void checkIsNotNull(void * pointer) 
 {

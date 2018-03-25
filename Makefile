@@ -4,7 +4,10 @@
 # Author: aaquili@itba.edu.ar
 # Date  : 23-03-2018
 # ------------------------------------------------
-all: application slave run
+all: utils application slave run
+
+utils: 
+	cd Utils; make all
 
 application:
 	cd Application; make all
@@ -21,4 +24,4 @@ run:
 	@echo "Running"
 	@./run.sh
 	
-.PHONY: application slave clean all
+.PHONY: util application slave clean all
