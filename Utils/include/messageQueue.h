@@ -13,9 +13,9 @@ messageQueueADT openMQ(const char* name, const long flagsMQ);
 
 void closeMQ(messageQueueADT mq);
 
-void sendMessage(messageQueueADT mq, const char* msg);
+void enqueueMessage(messageQueueADT mq, const char* msg);
 
-void sendMessages(messageQueueADT mq, char** msgs, const int qty);
+void enqueueMessages(messageQueueADT mq, char** msgs, const int qty);
 
 ssize_t readMessage(messageQueueADT mq, char* buffer, unsigned int* priority);
 

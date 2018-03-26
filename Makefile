@@ -4,7 +4,6 @@
 # Author: aaquili@itba.edu.ar
 # Date  : 23-03-2018
 # ------------------------------------------------
-RM:=	rm -f
 all: clean utils application slave run
 
 utils: 
@@ -21,9 +20,8 @@ clean:
 	cd Slave; make clean
 
 run: 
-	$(RM) ./Fifos/*
 	@chmod 777 ./run.sh
 	@echo "Running"
 	@./run.sh
 	
-.PHONY: util application slave clean all
+.PHONY: utils application slave clean all

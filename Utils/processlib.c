@@ -5,38 +5,38 @@
 
 pid_t * childFactory(int qty, char* childName)
 {
-	pid_t* childs = malloc(qty * sizeof(pid_t*));
+	pid_t* children = malloc(qty * sizeof(pid_t*));
 
 	for (int i = 0; i < qty; i++)
 	{ 
-		childs[i] = fork();
-		checkFail(childs[i], "Fork Failed");
+		children[i] = fork();
+		checkFail(children[i], "Fork Failed");
 		
-		if (childs[i] == 0)
+		if (children[i] == 0)
 		{
 			execlp(childName, " ", ((char *)NULL));
 
 			fail("Exec Failed");
 		}
 	}
-	return childs;
+	return children;
 }
 
 pid_t * childFactoryWithArgs(int qty, char* childPath, char** args)
 {
-	pid_t* childs = malloc(qty * sizeof(pid_t*));
+	pid_t* children = malloc(qty * sizeof(pid_t*));
 
 	for (int i = 0; i < qty; i++)
 	{ 
-		childs[i] = fork();
-		checkFail(childs[i], "Fork Failed");
+		children[i] = fork();
+		checkFail(children[i], "Fork Failed");
 
-		if (childs[i] == 0)
+		if (children[i] == 0)
 		{
 			execlp(childPath, args[i], ((char *)NULL));
 			fail("Exec Failed");
 		}
 	}
-	return childs;
+	return children;
 }
 

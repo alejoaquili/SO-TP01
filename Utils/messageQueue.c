@@ -50,17 +50,17 @@ void closeMQ(messageQueueADT mq)
 	free(mq);
 }
 
-void sendMessage(messageQueueADT mq, const char* msg)
+void enqueueMessage(messageQueueADT mq, const char* msg)
 {
 	int result = mq_send(mq->descriptor, msg, mq->attributes.mq_msgsize, 0);
 	checkFail(result, "mq_send Failed");
 }
 
-void sendMessages(messageQueueADT mq, char** msgs, const int qty) 
+void enqueueMessages(messageQueueADT mq, char** msgs, const int qty) 
 {
 	for(int i = 0 ; i < qty; i++)
 	{
-		sendMessage(mq, msgs[i]);
+		enqueueMessage(mq, msgs[i]);
 	}
 }
 

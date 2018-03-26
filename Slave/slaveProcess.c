@@ -12,9 +12,9 @@
 
 void md5sum(size_t commandLength, char * fileToHash);
 void childProcess(int * fd, char * fileToHash);
-void parentProcess(int * fd, char * fifoToWrite);
+void parentProcess(int * fd, char* fileToHash);
 int checkQueueIsEmpty(mqd_t mqDescriptor, ssize_t bytesRead);
-void hashAFile(ssize_t bytesRead, char * fileToHash, char * fifoToWrite);
+void hashAFile(ssize_t bytesRead, char * fileToHash);
 
 int main(int argc, char * argv[]) 
 {
@@ -24,20 +24,19 @@ int main(int argc, char * argv[])
 
 	mqFiles = openMQ(QUEUE_FILE_NAME, O_RDONLY);
 	while((bytesRead = readMessage(mqFiles, fileToHash, NULL)) >= 0)
-		hashAFile(bytesRead, fileToHash, argv[1]);
+		hashAFile(bytesRead, fileToHash);
 	
 	if(errno != EAGAIN) 
 		fail("readMessage Failed");
 	closeMQ(mqFiles);
 	return 0;
-
 }
 
-void hashAFile(ssize_t bytesRead, char * fileToHash, char * fifoToWrite)
+void hashAFile(ssize_t bytesRead, char * fileToHash)
 {
 	pid_t child;
 	int fd[2];
-	fileToHash[bytesRead] = 0;
+
 	int result = pipe(fd);
 	checkFail(result, "Pipe Failed");
 	child = fork();
@@ -46,7 +45,7 @@ void hashAFile(ssize_t bytesRead, char * fileToHash, char * fifoToWrite)
 	if (child == 0)
 		childProcess(fd, fileToHash);
 	else
-		parentProcess(fd, fifoToWrite);
+		parentProcess(fd, fileToHash);
 }
 
 void childProcess(int * fd, char * fileToHash)
@@ -57,20 +56,19 @@ void childProcess(int * fd, char * fileToHash)
 	exit(1);
 }
 
-void parentProcess(int * fd, char * fifoToWrite)
+void parentProcess(int * fd, char* fileToHash)
 {
-	char buffer[MSG_SIZE + HASH_SIZE + 2];
+	char buffer[MSG_SIZE + HASH_SIZE + 2], buffer2[MSG_SIZE + HASH_SIZE + 2];
 	char hash[HASH_SIZE];
-	char fileName[MSG_SIZE];
 	messageQueueADT mqHashes;
 
 	close(fd[1]);
 	read(fd[0], buffer, sizeof(buffer));
-	sscanf(buffer, "%s %s", hash, fileName);
-	sprintf(buffer, "%s: %s%c", fileName, hash, 0);
 
+	sscanf(buffer, "%s ", hash);
+	sprintf(buffer2, "%s: %s%c", fileToHash, hash, 0);
 	mqHashes = openMQ(QUEUE_HASH_STORAGE, O_WRONLY);
-	sendMessage(mqHashes, buffer);
+	enqueueMessage(mqHashes, buffer2);
 	closeMQ(mqHashes);
 } 
 

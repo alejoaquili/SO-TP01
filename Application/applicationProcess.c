@@ -15,20 +15,20 @@ void freeSpace(int qty, void * memory, ...);
 int main(int argc, char * argv[]) 
 {
 	messageQueueADT mqHashes;
-	pid_t* childs;
+	pid_t* children;
 	int* status;
 
 	enqueueFiles(argv + 1, argc - 1);
 	
 	mqHashes = messageQueueCreator(QUEUE_HASH_STORAGE, O_RDONLY, argc - 1, MSG_SIZE + HASH_SIZE + 2);
-	childs = childFactory(SLAVE_QTY, SLAVE_PATH);
+	children = childFactory(SLAVE_QTY, SLAVE_PATH);
 	status = calloc(SLAVE_QTY, sizeof(int));
 
 	reciveHashes(mqHashes, argc - 1);
 
 	for(int j = 0; j < SLAVE_QTY; j++)
 	{
-		waitpid(childs[j], &(status[j]), 0);
+		waitpid(children[j], &(status[j]), 0);
 	}
 
 	closeMQ(mqHashes);
@@ -36,7 +36,7 @@ int main(int argc, char * argv[])
 	deleteMQ(QUEUE_FILE_NAME);
 	deleteMQ(QUEUE_HASH_STORAGE);
 
-	freeSpace(1, childs);
+	freeSpace(1, children);
 	return 0;
 }
 
@@ -52,7 +52,6 @@ void reciveHashes(messageQueueADT mqHashes, long qty)
     	checkFail(result, "Select Failed");
     	readHashes();
 	}
-
 }
 
 void readHashes() 
@@ -68,8 +67,8 @@ void readHashes()
 void enqueueFiles(char** nameFiles, long qty)
 {
 	messageQueueADT mqFiles;
-	mqFiles = messageQueueCreator(QUEUE_FILE_NAME, O_WRONLY, argc - 1, MSG_SIZE);
-	sendMessages(mqFiles, nameFiles, qty);
+	mqFiles = messageQueueCreator(QUEUE_FILE_NAME, O_WRONLY, qty, MSG_SIZE);
+	enqueueMessages(mqFiles, nameFiles, qty);
 	closeMQ(mqFiles);
 }
 
