@@ -14,15 +14,13 @@ void freeSpace(int qty, void * memory, ...);
 
 int main(int argc, char * argv[]) 
 {
-	messageQueueADT mqFiles, mqHashes;
+	messageQueueADT mqHashes;
 	pid_t* childs;
 	int* status;
 
-	mqFiles = messageQueueCreator(QUEUE_FILE_NAME, O_WRONLY, argc - 1, MSG_SIZE);
-	sendMessages(mqFiles, argv + 1, argc - 1);
-	closeMQ(mqFiles);
-	mqHashes = messageQueueCreator(QUEUE_HASH_STORAGE, O_RDONLY, argc - 1, MSG_SIZE + HASH_SIZE + 2);
+	enqueueFiles(argv + 1, argc - 1);
 	
+	mqHashes = messageQueueCreator(QUEUE_HASH_STORAGE, O_RDONLY, argc - 1, MSG_SIZE + HASH_SIZE + 2);
 	childs = childFactory(SLAVE_QTY, SLAVE_PATH);
 	status = calloc(SLAVE_QTY, sizeof(int));
 
@@ -65,6 +63,14 @@ void readHashes()
 	bytesRead = readMessage(mqHashes, fileHashed, NULL);
 	printf("%s\n", fileHashed);
 	closeMQ(mqHashes);
+}
+
+void enqueueFiles(char** nameFiles, long qty)
+{
+	messageQueueADT mqFiles;
+	mqFiles = messageQueueCreator(QUEUE_FILE_NAME, O_WRONLY, argc - 1, MSG_SIZE);
+	sendMessages(mqFiles, nameFiles, qty);
+	closeMQ(mqFiles);
 }
 
 void freeSpace(int qty, void * memory, ...) 
