@@ -1,11 +1,6 @@
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <sys/stat.h>
-#include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <errno.h>
-#include <mqueue.h>
+#include <sys/types.h>
 #include "errorslib.h"
 
 pid_t * childFactory(int qty, char* childName)

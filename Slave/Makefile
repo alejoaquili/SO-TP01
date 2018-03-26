@@ -20,7 +20,7 @@ comp:$(SOURCES)
 	@echo "Slave Compilation complete."
 
 link:$(OBJECTS)
-	$(LINKER) $(LFLAGS) $(OBJECTS) ./../Utils/errorslib.o -o $(TARGET).out -lrt
+	$(LINKER) $(LFLAGS) $(OBJECTS) ./../Utils/*.o -o $(TARGET).out -lrt
 	@echo "Slave Linking complete."
 
 %.o : %.c

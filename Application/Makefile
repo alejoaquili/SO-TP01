@@ -20,7 +20,7 @@ comp:$(SOURCES)
 	@echo "Application Compilation complete."
 
 link:$(OBJECTS)
-	$(LINKER) $(LFLAGS) $(OBJECTS) ./../Utils/errorslib.o -o $(TARGET).out -lrt
+	$(LINKER) $(LFLAGS) $(OBJECTS) ./../Utils/*.o -o $(TARGET).out -lrt
 	@echo "Application Linking complete."
 
 %.o : %.c
