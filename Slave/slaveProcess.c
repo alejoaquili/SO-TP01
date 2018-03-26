@@ -51,7 +51,7 @@ void childProcess(int * fd, char * fileToHash)
 void parentProcess(int * fd, char * fifoToWrite)
 {
 
-	int fd;
+	int fifoFd;
 	char buffer[MSG_SIZE + MAX_HASH + 4];
 
 	close(fd[1]);
@@ -61,10 +61,10 @@ void parentProcess(int * fd, char * fifoToWrite)
 	sscanf(buffer, "%s %s", hash, fileName);
 	sprintf(buffer, "<%s> <%s>%c", fileName, hash, 0);
 
-	fd = open(fifoToWrite);
-	checkFail(fd, "Open Failed");
-	write(fd, buffer, MSG_SIZE + MAX_HASH + 4);
-	close(fd);
+	fifoFd = open(fifoToWrite, O_WRONLY);
+	checkFail(fifoFd, "Open Failed");
+	write(fifoFd, buffer, MSG_SIZE + MAX_HASH + 4);
+	close(fifoFd);
 }
 
 
