@@ -21,6 +21,7 @@ view:
 clean:
 	cd Application; make clean
 	cd Slave; make clean
+	cd Utils; make clean
 	cd View; make clean
 
 run: 

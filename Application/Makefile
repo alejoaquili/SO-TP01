@@ -30,6 +30,7 @@ link:$(OBJECTS)
 	$(LINKER) $(LFLAGS) $< -o $@ -lrt
 
 clean:
+	@$(rm) $(OBJECTS)
 	@$(rm) $(OUTPUTS)
 	@echo "Application Cleanup complete."
 
