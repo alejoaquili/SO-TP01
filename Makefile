@@ -21,6 +21,7 @@ clean:
 
 run: 
 	@chmod 777 ./run.sh
+	@chmod 777 ./init.sh
 	@echo "Running"
 	@./run.sh
 	
