@@ -4,12 +4,15 @@
 #include <signal.h>
 #include <sys/select.h>
 #include <sys/wait.h>
+#include <sys/mman.h> 
+#include <fcntl.h>
+#include <semaphore.h>
 #include "errorslib.h"
 #include "messageQueue.h"
 #include "applicationProcess.h"
 #include "processlib.h"
 
-void readHashes();
+void readHashes(int fd);
 void freeSpace(int qty, void * memory, ...);
 
 int main(int argc, char * argv[]) 
@@ -18,29 +21,55 @@ int main(int argc, char * argv[])
 	pid_t* children;
 	int* status;
 
+//create SHM
+
+	int shmFd = shm_open(SHARED_MEMORY_NAME, O_RDWR | O_CREAT, 0666);
+	checkFail(shmFd, "shm_open Failed");
+	int size = ((MSG_SIZE + HASH_SIZE + 2) * (argc-1))+ MAX_PID_LENGTH;
+	void * shmPointer = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, shmFd, 0);
+	
+//write PID on SHM
+	char buf[MAX_PID_LENGTH];
+	sprintf(buf, "%d", (int)getpid());
+	int writeResult = write(shmFd, buf, MAX_PID_LENGTH);
+	checkFail(writeResult, "write Failed");
+
+
+//before start
+	printf("applicationProcess PID = %d\n", (int)getpid());
+	printf("Starting in a seconds ...\n");
+	sleep(5);
+
+//semaphore
+
+	sem_t* semaphore = sem_open(SEMAPHORE_NAME, O_CREAT, 0666);
+	int res = sem_init(semaphore, 1, 1);
+	checkFail(res, "sem_init Failed");
+	
+
 	enqueueFiles(argv + 1, argc - 1);
 	
 	mqHashes = messageQueueCreator(QUEUE_HASH_STORAGE, O_RDONLY, argc - 1, MSG_SIZE + HASH_SIZE + 2);
 	children = childFactory(SLAVE_QTY, SLAVE_PATH);
 	status = calloc(SLAVE_QTY, sizeof(int));
 
-	reciveHashes(mqHashes, argc - 1);
+	reciveHashes(mqHashes, shmFd, argc - 1);
 
 	for(int j = 0; j < SLAVE_QTY; j++)
-	{
 		waitpid(children[j], &(status[j]), 0);
-	}
-
+	freeSpace(1, children);
 	closeMQ(mqHashes);
 	printf("All Child process finished.\n");
 	deleteMQ(QUEUE_FILE_NAME);
 	deleteMQ(QUEUE_HASH_STORAGE);
 
-	freeSpace(1, children);
+// free de SHM
+	shm_unlink(SHARED_MEMORY_NAME);
+
 	return 0;
 }
 
-void reciveHashes(messageQueueADT mqHashes, long qty)
+void reciveHashes(messageQueueADT mqHashes, int shmFd, long qty)
 {
 	fd_set rfd;
 	int fd = getDescriptor(mqHashes);
@@ -50,16 +79,17 @@ void reciveHashes(messageQueueADT mqHashes, long qty)
     {
     	int result = select(fd + 1, &rfd, 0, 0, NULL);
     	checkFail(result, "Select Failed");
-    	readHashes();
+    	readHashes(shmFd);
 	}
 }
 
-void readHashes() 
+void readHashes(int fd) 
 {
 	ssize_t bytesRead;
 	char fileHashed[MSG_SIZE + HASH_SIZE + 2];
 	messageQueueADT mqHashes = openMQ(QUEUE_HASH_STORAGE, O_RDONLY);
 	bytesRead = readMessage(mqHashes, fileHashed, NULL);
+	write(fd, fileHashed, MSG_SIZE + HASH_SIZE + 2);
 	printf("%s\n", fileHashed);
 	closeMQ(mqHashes);
 }
@@ -83,3 +113,5 @@ void freeSpace(int qty, void * memory, ...)
     }
     va_end(args);
 }
+
+

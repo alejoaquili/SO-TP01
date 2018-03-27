@@ -4,7 +4,7 @@
 # Author: aaquili@itba.edu.ar
 # Date  : 23-03-2018
 # ------------------------------------------------
-all: clean utils application slave run
+all: clean utils application slave view run
 
 utils: 
 	cd Utils; make all
@@ -15,9 +15,13 @@ application:
 slave:
 	cd Slave; make all
 
+view: 	
+	cd View; make all
+
 clean:
 	cd Application; make clean
 	cd Slave; make clean
+	cd View; make clean
 
 run: 
 	@chmod 777 ./run.sh
@@ -25,4 +29,4 @@ run:
 	@echo "Running"
 	@./run.sh
 	
-.PHONY: utils application slave clean all
+.PHONY: utils application slave view clean all
