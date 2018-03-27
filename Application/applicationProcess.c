@@ -7,6 +7,7 @@
 #include <sys/mman.h> 
 #include <fcntl.h>
 #include <semaphore.h>
+#include <pthread.h>
 #include "errorslib.h"
 #include "messageQueue.h"
 #include "applicationProcess.h"
@@ -75,6 +76,7 @@ void reciveHashes(messageQueueADT mqHashes, int shmFd, long qty)
 	int fd = getDescriptor(mqHashes);
  	FD_ZERO( &rfd );
     FD_SET(fd, &rfd);
+
     while(qty--)
     {
     	int result = select(fd + 1, &rfd, 0, 0, NULL);

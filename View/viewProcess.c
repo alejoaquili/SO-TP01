@@ -1,3 +1,7 @@
+#include <unistd.h>
+#include <stdio.h>
+#include <sys/mman.h> 
+#include <fcntl.h>
 #include "errorslib.h"
 #include "applicationProcess.h"
 
@@ -19,4 +23,7 @@ int main(int argc, char * argv[])
 
 
 	shm_unlink(SHARED_MEMORY_NAME);
+
+
 }
+
