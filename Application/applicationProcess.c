@@ -37,9 +37,9 @@ int main(int argc, char * argv[])
 //create SHM 
 	int shmFd = shm_open(shmName, O_WRONLY | O_CREAT, 0777);
 	checkFail(shmFd, "shm_open Failed");
-	int size = (MSG_SIZE + HASH_SIZE + 2) * (argc-1);
+	int size = (MSG_SIZE + HASH_SIZE + 2) * argc;
 	void * shmPointer = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, shmFd, 0);
-	
+
 	printf("applicationProcess PID = %d\n", (int)getpid());
 
 	enqueueFiles(argv + 1, argc - 1);
@@ -61,7 +61,6 @@ int main(int argc, char * argv[])
 
 	printf("Waiting for a view process ...\n");
 	sleep(10);
-
 
 	munmap(shmPointer, size);
 	//Grabar en disco
@@ -86,6 +85,13 @@ void reciveHashes(messageQueueADT mqHashes, int shmFd, long qty, sem_t* semaphor
     	checkFail(result, "Select Failed");
     	readHashes(shmFd, semaphore);
 	}
+
+	//
+	sem_wait(semaphore);
+	int i = -1;
+	write(shmFd, &i, MSG_SIZE + HASH_SIZE + 2);
+	sem_post(semaphore);
+	//
 }
 
 void readHashes(int fd, sem_t* semaphore) 

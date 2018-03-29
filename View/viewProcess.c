@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/mman.h> 
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -8,6 +9,8 @@
 #include <sys/select.h>
 #include "errorslib.h"
 #include "applicationProcess.h"
+
+int readLine(int shmFd, char* buffer, sem_t* semaphore);
 
 int main(int argc, char * argv[])
 {
@@ -24,16 +27,27 @@ int main(int argc, char * argv[])
 	int shmFd = shm_open(shmName, O_RDONLY, 0777);
 	checkFail(shmFd, "shm_open Failed");
 
-    int  qty = 2;
-    while(qty--)
-    {
-    	sem_wait(mutexSemaphore);
-    	char buffer[MSG_SIZE + HASH_SIZE + 2];
-		int readBytes = read(shmFd, buffer, sizeof(buffer));
-		checkFail(readBytes, "read Failed");
-		printf("%s\n", buffer);
-		sem_post(mutexSemaphore);
-	}
+	fd_set rfd;
+ 	FD_ZERO( &rfd );
+    FD_SET(shmFd, &rfd);
 
+    do
+    {
+    	char buffer[MSG_SIZE + HASH_SIZE + 2];
+    	int result = select(shmFd + 1, &rfd, 0, 0, NULL);
+    	checkFail(result, "Select Failed");
+
+		int readBytes = readLine(shmFd, buffer, mutexSemaphore);
+		checkFail(readBytes, "read Failed");
+		if (readBytes != 0)
+			printf("%s\n", buffer);
+	} while(buffer[0] != EOF);
 }
 
+int readLine(int shmFd, char* buffer, sem_t* semaphore) 
+{
+   	sem_wait(semaphore);
+	int readBytes = read(shmFd, buffer, sizeof(buffer));
+	sem_post(semaphore);
+	return readBytes;
+}
