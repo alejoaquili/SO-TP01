@@ -46,11 +46,11 @@ int main(int argc, char * argv[])
 	char semName[MAX_PID_LENGTH+4];
 	sprintf(semName, "/sem%d", getpid());
 
-	sem_t* mutexSemaphore = sem_open(semName, O_CREAT, 0777);
-	int res = sem_init(mutexSemaphore, 1, 1);
-	checkFail(res, "sem_init Failed");
-	
+	sem_t* mutexSemaphore = sem_open("sem", O_CREAT|O_EXCL, 0777, 1);
 
+
+	if(mutexSemaphore == (void*)0)
+		printf("La cagaste\n");
 
 
 
