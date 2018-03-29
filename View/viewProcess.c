@@ -25,7 +25,7 @@ int main(int argc, char * argv[])
 	//	printf("La cagaste\n");
 
 	//shm
-	int shmFd = shm_open(shmName, O_RDONLY | O_CREAT, 0777);
+	int shmFd = shm_open(shmName, O_RDONLY, 0777);
 	checkFail(shmFd, "shm_open Failed");
 	//int size = (MSG_SIZE + HASH_SIZE + 2) * (argc-1);
 	//void * shmPointer = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, shmFd, 0);
@@ -49,7 +49,6 @@ int main(int argc, char * argv[])
 	}
 	
 	//munmap(shmPointer, size);
-	shm_unlink(shmName);
 	//sem_unlink(semName);
 	
 
