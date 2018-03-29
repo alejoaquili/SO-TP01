@@ -48,14 +48,6 @@ void hashAFile(ssize_t bytesRead, char * fileToHash)
 		parentProcess(fd, fileToHash);
 }
 
-void childProcess(int * fd, char * fileToHash)
-{
-	dup2(fd[1], 1);
-	close(fd[0]);
-	md5sum(MSG_SIZE + MD5SUM_LENGTH, fileToHash);
-	exit(1);
-}
-
 void parentProcess(int * fd, char* fileToHash)
 {
 	char buffer[MSG_SIZE + HASH_SIZE + 2], buffer2[MSG_SIZE + HASH_SIZE + 2];
@@ -71,6 +63,14 @@ void parentProcess(int * fd, char* fileToHash)
 	enqueueMessage(mqHashes, buffer2);
 	closeMQ(mqHashes);
 } 
+
+void childProcess(int * fd, char * fileToHash)
+{
+	dup2(fd[1], 1);
+	close(fd[0]);
+	md5sum(MSG_SIZE + MD5SUM_LENGTH, fileToHash);
+	exit(1);
+}
 
 void md5sum(size_t commandLength, char * fileToHash)
 {

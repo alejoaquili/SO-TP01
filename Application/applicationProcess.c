@@ -24,11 +24,10 @@ int main(int argc, char * argv[])
 	int* status;
 
 //semaphore
-	//char semName[MAX_PID_LENGTH+4];
-	//sprintf(semName, "/sem%d", getpid());
-    sem_unlink("sem");
-	sem_t* mutexSemaphore = sem_open("sem", O_CREAT|O_EXCL, 0777, 1);
-//
+	char semName[MAX_PID_LENGTH+4];
+	sprintf(semName, "/sem%d", getpid());
+    sem_unlink(semName);
+	sem_t* mutexSemaphore = sem_open(semName, O_CREAT|O_EXCL, 0777, 1);
 
 //create shm name
 
@@ -36,19 +35,12 @@ int main(int argc, char * argv[])
 	sprintf(shmName, "/shm%d", getpid());
 
 //create SHM 
-	//mode_t old_umask = umask(0); S_IRUSR | S_IWUSR
 	int shmFd = shm_open(shmName, O_WRONLY | O_CREAT, 0777);
-	//umask(old_umask);
 	checkFail(shmFd, "shm_open Failed");
 	int size = (MSG_SIZE + HASH_SIZE + 2) * (argc-1);
 	void * shmPointer = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, shmFd, 0);
 	
-
-//before start
 	printf("applicationProcess PID = %d\n", (int)getpid());
-	printf("Starting in a seconds ...\n");
-	sleep(10);
-
 
 	enqueueFiles(argv + 1, argc - 1);
 	
@@ -60,6 +52,7 @@ int main(int argc, char * argv[])
 
 	for(int j = 0; j < SLAVE_QTY; j++)
 		waitpid(children[j], &(status[j]), 0);
+
 	freeSpace(1, children);
 	closeMQ(mqHashes);
 	printf("All Child process finished.\n");
@@ -75,7 +68,7 @@ int main(int argc, char * argv[])
 
 	// free de SHM y semaforo
 	shm_unlink(shmName);
-	//sem_unlink(semName);
+	sem_unlink(semName);
 
 	return 0;
 }
@@ -97,17 +90,16 @@ void reciveHashes(messageQueueADT mqHashes, int shmFd, long qty, sem_t* semaphor
 
 void readHashes(int fd, sem_t* semaphore) 
 {
-
 	ssize_t bytesRead;
 	char fileHashed[MSG_SIZE + HASH_SIZE + 2];
 	messageQueueADT mqHashes = openMQ(QUEUE_HASH_STORAGE, O_RDONLY);
+
 	bytesRead = readMessage(mqHashes, fileHashed, NULL);
 	sem_wait(semaphore);
 	write(fd, fileHashed, MSG_SIZE + HASH_SIZE + 2);
 	printf("%s\n", fileHashed);
 	sem_post(semaphore);
 	closeMQ(mqHashes);
-	
 }
 
 void enqueueFiles(char** nameFiles, long qty)
@@ -124,9 +116,8 @@ void freeSpace(int qty, void * memory, ...)
     va_start(args, memory);
 
     for (int i = 0; i < qty; i++)
-    {
         free(va_arg(args, void*));
-    }
+
     va_end(args);
 }
 
