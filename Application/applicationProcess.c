@@ -14,7 +14,7 @@
 #include "applicationProcess.h"
 #include "processlib.h"
 
-void readHashes(int fd);
+void readHashes(int fd, sem_t* semaphore);
 void freeSpace(int qty, void * memory, ...);
 
 int main(int argc, char * argv[]) 
@@ -23,14 +23,12 @@ int main(int argc, char * argv[])
 	pid_t* children;
 	int* status;
 
-
 //semaphore
 	//char semName[MAX_PID_LENGTH+4];
 	//sprintf(semName, "/sem%d", getpid());
-
+    sem_unlink("sem");
 	sem_t* mutexSemaphore = sem_open("sem", O_CREAT|O_EXCL, 0777, 1);
-	perror("sem_open Failed:");
-
+//
 
 //create shm name
 
@@ -58,7 +56,7 @@ int main(int argc, char * argv[])
 	children = childFactory(SLAVE_QTY, SLAVE_PATH);
 	status = calloc(SLAVE_QTY, sizeof(int));
 
-	reciveHashes(mqHashes, shmFd, argc - 1);
+	reciveHashes(mqHashes, shmFd, argc - 1, mutexSemaphore);
 
 	for(int j = 0; j < SLAVE_QTY; j++)
 		waitpid(children[j], &(status[j]), 0);
@@ -82,7 +80,7 @@ int main(int argc, char * argv[])
 	return 0;
 }
 
-void reciveHashes(messageQueueADT mqHashes, int shmFd, long qty)
+void reciveHashes(messageQueueADT mqHashes, int shmFd, long qty, sem_t* semaphore)
 {
 	fd_set rfd;
 	int fd = getDescriptor(mqHashes);
@@ -93,20 +91,21 @@ void reciveHashes(messageQueueADT mqHashes, int shmFd, long qty)
     {
     	int result = select(fd + 1, &rfd, 0, 0, NULL);
     	checkFail(result, "Select Failed");
-    	readHashes(shmFd);
+    	readHashes(shmFd, semaphore);
 	}
 }
 
-void readHashes(int fd) 
+void readHashes(int fd, sem_t* semaphore) 
 {
+
 	ssize_t bytesRead;
 	char fileHashed[MSG_SIZE + HASH_SIZE + 2];
 	messageQueueADT mqHashes = openMQ(QUEUE_HASH_STORAGE, O_RDONLY);
 	bytesRead = readMessage(mqHashes, fileHashed, NULL);
-	//sem_wait(semaphore);
+	sem_wait(semaphore);
 	write(fd, fileHashed, MSG_SIZE + HASH_SIZE + 2);
 	printf("%s\n", fileHashed);
-	//sem_post(semaphore);
+	sem_post(semaphore);
 	closeMQ(mqHashes);
 	
 }
