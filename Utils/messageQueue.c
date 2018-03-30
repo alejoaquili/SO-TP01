@@ -19,7 +19,7 @@ messageQueueADT messageQueueCreator(const char* name, const long flagsMQ, const 
 
 	mq->attributes = makeMQAttributes(maxMsg, msgSize);
 	mq->descriptor =  mq_open(name, flagsMQ | O_CREAT, 0666, &(mq->attributes));
-	checkFail(mq->descriptor, "mq_open_create Failed");
+	checkFail(mq->descriptor, "mq_open_create() Failed");
 
 	return mq;
 }
@@ -27,7 +27,7 @@ messageQueueADT messageQueueCreator(const char* name, const long flagsMQ, const 
 void deleteMQ(char* name)
 {
 	int result = mq_unlink(name);
-	checkFail(result, "mq_unlink Failed");
+	checkFail(result, "mq_unlink() Failed");
 }
 
 messageQueueADT openMQ(const char* name, const long flagsMQ)
@@ -35,7 +35,7 @@ messageQueueADT openMQ(const char* name, const long flagsMQ)
 	messageQueueADT mq = malloc(sizeof(messageQueueCDT));
 
 	mq->descriptor =  mq_open(name, flagsMQ | O_NONBLOCK);
-	checkFail(mq->descriptor, "mq_open Failed");
+	checkFail(mq->descriptor, "mq_open() Failed");
 
 	int result = mq_getattr(mq->descriptor, &(mq->attributes));
 	checkFail(result, "mq_getattr Failed");
@@ -46,14 +46,14 @@ messageQueueADT openMQ(const char* name, const long flagsMQ)
 void closeMQ(messageQueueADT mq)
 {
 	int result = mq_close(mq->descriptor);
-	checkFail(result, "mq_close Failed");
+	checkFail(result, "mq_close() Failed");
 	free(mq);
 }
 
 void enqueueMessage(messageQueueADT mq, const char* msg)
 {
 	int result = mq_send(mq->descriptor, msg, mq->attributes.mq_msgsize, 0);
-	checkFail(result, "mq_send Failed");
+	checkFail(result, "mq_send() Failed");
 }
 
 void enqueueMessages(messageQueueADT mq, char** msgs, const int qty) 
@@ -78,7 +78,7 @@ void setMQAttributes(messageQueueADT mq, const long maxMsg,const long msgSize)
 {
 	attr_t newAttr = makeMQAttributes(maxMsg, msgSize);
 	int result = mq_setattr(mq->descriptor, &newAttr, &(mq->attributes));
-	checkFail(result, "mq_setattr Failed");
+	checkFail(result, "mq_setattr() Failed");
 }
 
 mqd_t getDescriptor(messageQueueADT mq)

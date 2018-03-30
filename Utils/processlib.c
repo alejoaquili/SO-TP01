@@ -10,13 +10,13 @@ pid_t * childFactory(int qty, char* childName)
 	for (int i = 0; i < qty; i++)
 	{ 
 		children[i] = fork();
-		checkFail(children[i], "Fork Failed");
+		checkFail(children[i], "fork() Failed");
 		
 		if (children[i] == 0)
 		{
 			execlp(childName, " ", ((char *)NULL));
 
-			fail("Exec Failed");
+			fail("exec() Failed");
 		}
 	}
 	return children;
@@ -29,12 +29,12 @@ pid_t * childFactoryWithArgs(int qty, char* childPath, char** args)
 	for (int i = 0; i < qty; i++)
 	{ 
 		children[i] = fork();
-		checkFail(children[i], "Fork Failed");
+		checkFail(children[i], "fork() Failed");
 
 		if (children[i] == 0)
 		{
 			execlp(childPath, args[i], ((char *)NULL));
-			fail("Exec Failed");
+			fail("exec() Failed");
 		}
 	}
 	return children;

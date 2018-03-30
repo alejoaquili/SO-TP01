@@ -14,7 +14,7 @@
 #include "applicationProcess.h"
 #include "processlib.h"
 
-void readHashes(int fd, sem_t* semaphore);
+void readHashes(int fd, sem_t* semaphore, int outputFileFd);
 void freeSpace(int qty, void * memory, ...);
 
 int main(int argc, char * argv[]) 
@@ -36,24 +36,29 @@ int main(int argc, char * argv[])
 
 //create SHM 
 	int shmFd = shm_open(shmName, O_WRONLY | O_CREAT, 0777);
-	checkFail(shmFd, "shm_open Failed");
+	checkFail(shmFd, "shm_open() Failed");
 	int size = (MSG_SIZE + HASH_SIZE + 2) * argc;
 	void * shmPointer = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, shmFd, 0);
 
 	printf("applicationProcess PID = %d\n", (int)getpid());
 
+//create the output.txt
+
+	int outputFileFd = fopen("./output.txt", "w+");
+	checkFail(outputFileFd, "fopen() Failed");
+
 	enqueueFiles(argv + 1, argc - 1);
 	
 	mqHashes = messageQueueCreator(QUEUE_HASH_STORAGE, O_RDONLY, argc - 1, MSG_SIZE + HASH_SIZE + 2);
 	children = childFactory(SLAVE_QTY, SLAVE_PATH);
-	status = calloc(SLAVE_QTY, sizeof(int));
+	status = calloc(SLAVE_QTY, sizeof(int)); // por que dinamico?? tiene free?
 
-	reciveHashes(mqHashes, shmFd, argc - 1, mutexSemaphore);
+	reciveHashes(mqHashes, shmFd, argc - 1, mutexSemaphore, outputFileFd);
 
 	for(int j = 0; j < SLAVE_QTY; j++)
 		waitpid(children[j], &(status[j]), 0);
 
-	freeSpace(1, children);
+	freeSpace(1, children, status);
 	closeMQ(mqHashes);
 	printf("All Child process finished.\n");
 	deleteMQ(QUEUE_FILE_NAME);
@@ -72,7 +77,7 @@ int main(int argc, char * argv[])
 	return 0;
 }
 
-void reciveHashes(messageQueueADT mqHashes, int shmFd, long qty, sem_t* semaphore)
+void reciveHashes(messageQueueADT mqHashes, int shmFd, long qty, sem_t* semaphore, int outputFileFd)
 {
 	fd_set rfd;
 	int fd = getDescriptor(mqHashes);
@@ -82,8 +87,8 @@ void reciveHashes(messageQueueADT mqHashes, int shmFd, long qty, sem_t* semaphor
     while(qty--)
     {
     	int result = select(fd + 1, &rfd, 0, 0, NULL);
-    	checkFail(result, "Select Failed");
-    	readHashes(shmFd, semaphore);
+    	checkFail(result, "select() Failed");
+    	readHashes(shmFd, semaphore, outputFileFd);
 	}
 
 	//
@@ -92,9 +97,10 @@ void reciveHashes(messageQueueADT mqHashes, int shmFd, long qty, sem_t* semaphor
 	write(shmFd, &i, MSG_SIZE + HASH_SIZE + 2);
 	sem_post(semaphore);
 	//
+	close(outputFileFd);
 }
 
-void readHashes(int fd, sem_t* semaphore) 
+void readHashes(int fd, sem_t* semaphore, int outputFileFd) 
 {
 	ssize_t bytesRead;
 	char fileHashed[MSG_SIZE + HASH_SIZE + 2];
@@ -106,6 +112,7 @@ void readHashes(int fd, sem_t* semaphore)
 	printf("%s\n", fileHashed);
 	sem_post(semaphore);
 	closeMQ(mqHashes);
+	fprintf(outputFileFd, "%s\n", fileHashed);
 }
 
 void enqueueFiles(char** nameFiles, long qty)

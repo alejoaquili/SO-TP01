@@ -27,7 +27,7 @@ int main(int argc, char * argv[])
 		hashAFile(bytesRead, fileToHash);
 	
 	if(errno != EAGAIN) 
-		fail("readMessage Failed");
+		fail("readMessage() Failed");
 	closeMQ(mqFiles);
 	return 0;
 }
@@ -38,9 +38,9 @@ void hashAFile(ssize_t bytesRead, char * fileToHash)
 	int fd[2];
 
 	int result = pipe(fd);
-	checkFail(result, "Pipe Failed");
+	checkFail(result, "pipe() Failed");
 	child = fork();
-	checkFail(child, "Fork Failed");
+	checkFail(child, "fork() Failed");
 
 	if (child == 0)
 		childProcess(fd, fileToHash);
