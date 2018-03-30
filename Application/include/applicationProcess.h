@@ -1,14 +1,19 @@
 #ifndef APPLICATION_PROCESS_H
 #define APPLICATION_PROCESS_H
 
+#define SLAVE_QTY 5
 #define MSG_SIZE 256
 #define HASH_SIZE 32
 #define QUEUE_FILE_NAME  "/filesToHash"
 #define QUEUE_HASH_STORAGE  "/hashToStorage"
-#define SLAVE_QTY 5
 #define SLAVE_PATH "./Slave/slaveProcess.out"
 #define MAX_PID_LENGTH 6
 
+void enqueueFiles(char** nameFiles, long qty);
+void readHashes(int fd, sem_t* semaphore, FILE * outputFile);
+void reciveHashes(messageQueueADT mqHashes, int shmFd, long qty, 
+										  sem_t* semaphore, FILE * outputFile);
+void freeSpace(int qty, void * memory, ...);
 
 #endif
 

@@ -13,12 +13,13 @@ typedef struct messageQueueCDT {
 } messageQueueCDT;
 
 
-messageQueueADT messageQueueCreator(const char* name, const long flagsMQ, const long maxMsg, const long msgSize)
+messageQueueADT messageQueueCreator(const char* name, const long flagsMQ,
+									 	 const long maxMsg, const long msgSize)
 {	
 	messageQueueADT mq = malloc(sizeof(messageQueueCDT));
 
 	mq->attributes = makeMQAttributes(maxMsg, msgSize);
-	mq->descriptor =  mq_open(name, flagsMQ | O_CREAT, 0666, &(mq->attributes));
+	mq->descriptor =  mq_open(name, flagsMQ | O_CREAT, 0666,&(mq->attributes));
 	checkFail(mq->descriptor, "mq_open_create() Failed");
 
 	return mq;

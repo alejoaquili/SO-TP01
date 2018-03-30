@@ -6,15 +6,8 @@
 #include <errno.h>
 #include "messageQueue.h"
 #include "errorslib.h"
+#include "slaveProcess.h"
 #include "applicationProcess.h"
-
-#define MD5SUM_LENGTH 7
-
-void md5sum(size_t commandLength, char * fileToHash);
-void childProcess(int * fd, char * fileToHash);
-void parentProcess(int * fd, char* fileToHash);
-int checkQueueIsEmpty(mqd_t mqDescriptor, ssize_t bytesRead);
-void hashAFile(ssize_t bytesRead, char * fileToHash);
 
 int main(int argc, char * argv[]) 
 {
@@ -57,7 +50,7 @@ void parentProcess(int * fd, char* fileToHash)
 	close(fd[1]);
 	read(fd[0], buffer, sizeof(buffer));
 
-	sscanf(buffer, "%s ", hash);
+	sscanf(buffer, "%32s ", hash);
 	sprintf(buffer2, "%s: %s%c", fileToHash, hash, 0);
 	mqHashes = openMQ(QUEUE_HASH_STORAGE, O_WRONLY);
 	enqueueMessage(mqHashes, buffer2);

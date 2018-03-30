@@ -14,7 +14,6 @@ void checkFail(int aNumber, char* msg)
 void fail(char * msg) 
 {
 	fflush(stdout);
-	//fprintf(stderr, msg);
 	perror(msg);
 	exit(1);
 }
@@ -23,7 +22,5 @@ void fail(char * msg)
 void checkIsNotNull(void * aPointer, char* msg)
 {
 	if( aPointer == (void *) 0 )
-	{
 		fail(msg);
-	}
 }
