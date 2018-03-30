@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "CuTest.h"
+#include "include/CuTest.h"
 
 CuSuite* CuGetSuite(void);
 CuSuite* CuStringGetSuite(void);
