@@ -18,3 +18,10 @@ void fail(char * msg)
 	perror(msg);
 	exit(1);
 }
+
+
+void checkIsNotNull(void * aPointer, char* msg){
+	if( aPointer == (void *) 0 ){
+		fail(msg);
+	}
+}

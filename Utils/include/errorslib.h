@@ -5,5 +5,7 @@ void checkFail(int aNumber, char* msg);
 
 void fail(char * msg);
 
+void checkIsNotNull(void * aPointer, char* msg);
+
 #endif
 

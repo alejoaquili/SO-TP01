@@ -40,6 +40,8 @@ int main(int argc, char * argv[])
 	int size = (MSG_SIZE + HASH_SIZE + 2) * argc;
 	void * shmPointer = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, shmFd, 0);
 
+	checkIsNotNull(shmPointer," Null shmPointer");
+
 	printf("applicationProcess PID = %d\n", (int)getpid());
 
 //create the output.txt
