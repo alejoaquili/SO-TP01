@@ -6,22 +6,22 @@
 # ------------------------------------------------
 include Makefile.inc
 
-TARGET := viewProcess
+TARGET := testSO-TP01
 SOURCES := $(wildcard *.c)
 OBJECTS := $(SOURCES:.c=.o)
 OUTPUTS := $(SOURCES:.c=.out)
 rm       = rm -rf
 
 
-all: clean comp link
+all: clean comp link run
 
 comp:$(SOURCES)
 	$(CC) $(CFLAGS) $(SOURCES) -lrt
-	@echo "View Compilation complete."
+	@echo "Test Compilation complete."
 
 link:$(OBJECTS)
-	$(LINKER) $(LFLAGS) $(OBJECTS) ./../Utils/*.o -o $(TARGET).out -lrt
-	@echo "View Linking complete."
+	$(LINKER) $(LFLAGS) $(OBJECTS) ./../Utils/*.o  ./../Application/*.o ./../Slave/*.o  ./../View/*.o -o $(TARGET).out -lrt
+	@echo "Test Linking complete."
 
 %.o : %.c
 	$(CC) $(CFLAGS) $< -o $@ -lrt
@@ -30,8 +30,12 @@ link:$(OBJECTS)
 	$(LINKER) $(LFLAGS) $< -o $@ -lrt
 
 clean:
-	@$(rm) $(OBJECTS)	
 	@$(rm) $(OUTPUTS)
-	@echo "View Cleanup complete."
+	@$(rm) $(OBJECTS)
+	@echo "Test Cleanup complete."
 
-.PHONY: clean  all obj  
+run:
+	@echo "Test Running"
+	@./testSO-TP01.out
+
+.PHONY: clean  all obj run

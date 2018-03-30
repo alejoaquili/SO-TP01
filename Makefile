@@ -23,11 +23,15 @@ clean:
 	cd Slave; make clean
 	cd Utils; make clean
 	cd View; make clean
+	cd Test; make clean
 
 run: 
 	@chmod 777 ./run.sh
 	@chmod 777 ./init.sh
 	@echo "Running"
 	@./run.sh
+
+test:
+	cd Test; make all
 	
-.PHONY: utils application slave view clean all
+.PHONY: utils application slave view clean test all
