@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include <signal.h>
+#include <unistd.h>
 #include <sys/select.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
@@ -14,7 +14,9 @@
 #include "applicationProcess.h"
 #include "processlib.h"
 
-void readHashes(int fd, sem_t* semaphore, int outputFileFd);
+void enqueueFiles(char** nameFiles, long qty);
+void readHashes(int fd, sem_t* semaphore, FILE * outputFile);
+void reciveHashes(messageQueueADT mqHashes, int shmFd, long qty, sem_t* semaphore, FILE * outputFile);
 void freeSpace(int qty, void * memory, ...);
 
 int main(int argc, char * argv[]) 
@@ -24,10 +26,11 @@ int main(int argc, char * argv[])
 	int* status;
 
 //semaphore
-	char semName[MAX_PID_LENGTH+4];
+	char* semName = calloc(MAX_PID_LENGTH+4, sizeof(char));
 	sprintf(semName, "/sem%d", getpid());
     sem_unlink(semName);
-	sem_t* mutexSemaphore = sem_open(semName, O_CREAT|O_EXCL, 0777, 1);
+	sem_t* mutexSemaphore = sem_open(semName, O_CREAT|O_EXCL, 0777, 1); //ver valgrind jode
+	//sem_post(mutexSemaphore);
 
 //create shm name
 
@@ -39,28 +42,30 @@ int main(int argc, char * argv[])
 	checkFail(shmFd, "shm_open() Failed");
 	int size = (MSG_SIZE + HASH_SIZE + 2) * argc;
 	void * shmPointer = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, shmFd, 0);
-
 	checkIsNotNull(shmPointer," Null shmPointer");
 
 	printf("applicationProcess PID = %d\n", (int)getpid());
 
 //create the output.txt
 
-	int outputFileFd = fopen("./output.txt", "w+");
-	checkFail(outputFileFd, "fopen() Failed");
+	FILE * outputFile = fopen("./output.txt", "w+");
+	checkIsNotNull(outputFile, "fopen() Failed");
 
 	enqueueFiles(argv + 1, argc - 1);
 	
 	mqHashes = messageQueueCreator(QUEUE_HASH_STORAGE, O_RDONLY, argc - 1, MSG_SIZE + HASH_SIZE + 2);
 	children = childFactory(SLAVE_QTY, SLAVE_PATH);
-	status = calloc(SLAVE_QTY, sizeof(int)); // por que dinamico?? tiene free?
+	status = calloc(SLAVE_QTY, sizeof(int));
 
-	reciveHashes(mqHashes, shmFd, argc - 1, mutexSemaphore, outputFileFd);
+	reciveHashes(mqHashes, shmFd, argc - 1, mutexSemaphore, outputFile);
 
 	for(int j = 0; j < SLAVE_QTY; j++)
 		waitpid(children[j], &(status[j]), 0);
 
-	freeSpace(1, children, status);
+	free(children);
+	free(status);
+
+	//freeSpace(1, children, status);
 	closeMQ(mqHashes);
 	printf("All Child process finished.\n");
 	deleteMQ(QUEUE_FILE_NAME);
@@ -68,18 +73,17 @@ int main(int argc, char * argv[])
 
 	printf("Waiting for a view process ...\n");
 	sleep(10);
-
 	munmap(shmPointer, size);
-	//Grabar en disco
-
+	
 	// free de SHM y semaforo
 	shm_unlink(shmName);
 	sem_unlink(semName);
+	free(semName);
 
 	return 0;
 }
 
-void reciveHashes(messageQueueADT mqHashes, int shmFd, long qty, sem_t* semaphore, int outputFileFd)
+void reciveHashes(messageQueueADT mqHashes, int shmFd, long qty, sem_t* semaphore, FILE * outputFile)
 {
 	fd_set rfd;
 	int fd = getDescriptor(mqHashes);
@@ -90,31 +94,33 @@ void reciveHashes(messageQueueADT mqHashes, int shmFd, long qty, sem_t* semaphor
     {
     	int result = select(fd + 1, &rfd, 0, 0, NULL);
     	checkFail(result, "select() Failed");
-    	readHashes(shmFd, semaphore, outputFileFd);
+    	readHashes(shmFd, semaphore, outputFile);
 	}
 
 	//
 	sem_wait(semaphore);
-	int i = -1;
-	write(shmFd, &i, MSG_SIZE + HASH_SIZE + 2);
+	char * sentinela = calloc (MSG_SIZE + HASH_SIZE + 2, sizeof(char));
+	sentinela[0] = -1;
+	write(shmFd, sentinela, MSG_SIZE + HASH_SIZE + 2); 
+	free(sentinela);
 	sem_post(semaphore);
-	//
-	close(outputFileFd);
+	fclose(outputFile);
 }
 
-void readHashes(int fd, sem_t* semaphore, int outputFileFd) 
+void readHashes(int fd, sem_t* semaphore, FILE * outputFile)
 {
 	ssize_t bytesRead;
 	char fileHashed[MSG_SIZE + HASH_SIZE + 2];
 	messageQueueADT mqHashes = openMQ(QUEUE_HASH_STORAGE, O_RDONLY);
 
 	bytesRead = readMessage(mqHashes, fileHashed, NULL);
+	checkFail(bytesRead, "readMessage() Failed");
 	sem_wait(semaphore);
 	write(fd, fileHashed, MSG_SIZE + HASH_SIZE + 2);
 	printf("%s\n", fileHashed);
 	sem_post(semaphore);
 	closeMQ(mqHashes);
-	fprintf(outputFileFd, "%s\n", fileHashed);
+	fprintf(outputFile, "%s\n", fileHashed);
 }
 
 void enqueueFiles(char** nameFiles, long qty)

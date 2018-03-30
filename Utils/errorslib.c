@@ -20,8 +20,10 @@ void fail(char * msg)
 }
 
 
-void checkIsNotNull(void * aPointer, char* msg){
-	if( aPointer == (void *) 0 ){
+void checkIsNotNull(void * aPointer, char* msg)
+{
+	if( aPointer == (void *) 0 )
+	{
 		fail(msg);
 	}
 }
