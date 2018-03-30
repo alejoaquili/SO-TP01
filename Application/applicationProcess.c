@@ -14,7 +14,10 @@
 #include "applicationProcess.h"
 #include "processlib.h"
 
-
+void enqueueFiles(char** nameFiles, long qty);
+void readHashes(int fd, sem_t* semaphore, FILE * outputFile);
+void reciveHashes(messageQueueADT mqHashes, int shmFd, long qty, 
+										  sem_t* semaphore, FILE * outputFile);
 
 int main(int argc, char * argv[]) 
 {
