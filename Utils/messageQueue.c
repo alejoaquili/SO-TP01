@@ -70,11 +70,6 @@ ssize_t readMessage(messageQueueADT mq, char* buffer, unsigned int* priority)
 	return mq_receive(mq->descriptor, buffer, mq->attributes.mq_msgsize, priority);
 }
 
-int notifyMQ(messageQueueADT mq, struct sigevent* signalEvent)
-{
-	return mq_notify(mq->descriptor, signalEvent);
-}
-
 void setMQAttributes(messageQueueADT mq, const long maxMsg,const long msgSize)
 {
 	attr_t newAttr = makeMQAttributes(maxMsg, msgSize);
