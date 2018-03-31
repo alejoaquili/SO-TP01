@@ -18,9 +18,14 @@ void fail(char * msg)
 	exit(1);
 }
 
-
 void checkIsNotNull(void * aPointer, char* msg)
 {
 	if( aPointer == (void *) 0 )
+		fail(msg);
+}
+
+void checkIsNull(void * aPointer, char* msg)
+{
+	if( aPointer != (void *) 0 )
 		fail(msg);
 }

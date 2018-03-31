@@ -1,60 +1,116 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/mman.h> 
+#include <sys/stat.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <fcntl.h>
+#include <semaphore.h>
+#include "errorslib.h"
+#include "sharedMemory.h"
+
+#define MAX_NAME 14
 
 typedef struct sharedMemoryCDT {
-	sem_t* semaphore;
-	void* pointer;
-	int pid;
-	int fd;
+    sem_t* semaphore;
+    void* pointer;
+    int fd;
+    int id;
+    int memSize;
+    char* semName;
+    char* shmName;
 } sharedMemoryCDT;
 
+sem_t* createSemaphore(sharedMemoryADT shm);
+sem_t* openSemaphore(sharedMemoryADT shm);
 
-sharedMemoryADT sharedMemoryCreator(const char* name, const long memSize)
-{	
-	sharedMemoryADT shm = malloc(sizeof(sharedMemoryCDT));
-	
-	char* semName = calloc(MAX_PID_LENGTH+4, sizeof(char));
-	sprintf(semName, "/sem%d", getpid());
-	shm->semaphore = createSemaphore(shmName);
-//create shm name
 
-	char shmName[MAX_PID_LENGTH+4];
-	sprintf(shmName, "/shm%d", getpid());
+sharedMemoryADT sharedMemoryCreator(const int id, const long memSize, const long flags)
+{   
+    sharedMemoryADT shm = malloc(sizeof(sharedMemoryCDT));
+    shm->id = id;
+    shm->memSize = memSize;
+    shm->shmName = calloc(MAX_NAME, sizeof(char));
+    sprintf(shm->shmName, "/shm%d", id);
+    shm->semaphore = createSemaphore(shm);
+    checkIsNotNull(shm->semaphore, "sem_open() Failed");
 
-//create SHM 
-	shm->fd = shm_open(shmName, O_RDWR | O_CREAT, 0777);
-	checkFail(shm->fd, "shm_open() Failed");
-	shm->pointer = mmap(0, memSize, PROT_READ | PROT_WRITE, MAP_SHARED, shm->fd, 0);
-	checkIsNotNull(shm->pointer," Null shmPointer");
-	
-	return shm;
+    shm->fd = shm_open(shm->shmName, flags | O_CREAT, 0777);
+    checkFail(shm->fd, "shm_open() Failed");
+    shm->pointer = mmap(0, memSize, PROT_READ | PROT_WRITE, MAP_SHARED, shm->fd, 0);
+    checkIsNotNull(shm->pointer," Null shmPointer");
+    
+    return shm;
 }
 
-void deleteShmMem(sharedMemoryADT shm)
+int getId(sharedMemoryADT shm)
 {
-	munmap(shm->pointer, size);
-	shm_unlink(shmName);
-	sem_unlink(semName);
-	free(shm);
+    checkIsNotNull(shm, "Null sharedMemoryADT pointer");
+    return shm->id;
 }
 
-sem_t* createSemaphore(char* semName)
+void deleteShMem(sharedMemoryADT shm)
 {
-	sem_unlink(semName);
-	return sem_open(semName, O_CREAT|O_EXCL, 0777, 1);
+    checkIsNotNull(shm->pointer, "Null shm pointer");
+    munmap(shm->pointer, shm->memSize);
+    shm_unlink(shm->shmName);
+    sem_unlink(shm->semName);
+    free(shm->shmName);
+    free(shm->semName);
+    free(shm);
 }
 
-ssize_t writeShmMem(sharedMemoryADT shm, const void* buffer , size_t nbytes)
+sharedMemoryADT openShMem(const int id, const long flags) 
 {
-	sem_wait(shm->semaphore);
-	ssize_t result = write(shm->fd, buffer, nbytes);
-	sem_post(shm->semaphore);
-	return result;
+    sharedMemoryADT shm = malloc(sizeof(sharedMemoryCDT));
+    shm->id = id;
+    shm->shmName = calloc(MAX_NAME, sizeof(char));
+    sprintf(shm->shmName, "/shm%d", id);
+    shm->pointer = NULL;
+    
+    shm->semaphore = openSemaphore(shm);
+    checkIsNotNull(shm->semaphore, "sem_open() Failed");
+    shm->fd = shm_open(shm->shmName, flags, 0777);
+    checkFail(shm->fd, "shm_open() Failed");
 }
 
-ssize_t readShmMem(sharedMemoryADT shm, const void* buffer , size_t nbytes)
+void closeShMem(sharedMemoryADT shm)
 {
-	sem_wait(shm->semaphore);
-	ssize_t result = read(shm->fd, buffer, nbytes);
-	sem_post(shm->semaphore);
-	return result;
+    checkIsNull(shm->pointer, "closeShMem() Failed, you must use deletShm()");
+    free(shm->shmName);
+    free(shm->semName);
+    free(shm);
+}
+
+sem_t* createSemaphore(sharedMemoryADT shm)
+{
+    shm->semName = calloc(MAX_NAME, sizeof(char));
+    sprintf(shm->semName, "/sem%d", shm->id);
+    sem_unlink(shm->semName);
+    return sem_open(shm->semName, O_CREAT|O_EXCL, 0777, 1);
+}
+
+sem_t* openSemaphore(sharedMemoryADT shm)
+{
+    shm->semName = calloc(MAX_NAME, sizeof(char));
+    sprintf(shm->semName, "/sem%d", shm->id);
+    return sem_open(shm->semName, O_RDWR);
+}
+
+ssize_t writeShMem(sharedMemoryADT shm, const void* buffer , size_t nbytes)
+{
+    sem_wait(shm->semaphore);
+    ssize_t result = write(shm->fd, buffer, nbytes);
+    sem_post(shm->semaphore);
+    return result;
+}
+
+ssize_t readShMem(sharedMemoryADT shm, const void* buffer , size_t nbytes)
+{
+    sem_wait(shm->semaphore);
+    ssize_t result = read(shm->fd, buffer, nbytes);
+    sem_post(shm->semaphore);
+    return result;
 }
 

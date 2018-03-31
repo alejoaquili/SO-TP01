@@ -7,5 +7,7 @@ void fail(char * msg);
 
 void checkIsNotNull(void * aPointer, char* msg);
 
+void checkIsNull(void * aPointer, char* msg);
+
 #endif
 
