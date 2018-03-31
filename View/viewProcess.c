@@ -42,7 +42,7 @@ int main(int argc, char * argv[])
 		b[readBytes] = 0;
 		if (readBytes > 0 && b[0] != (char)EOF)
 		{
-				printf("%s\n", newBuffer);
+			printf("%s\n", newBuffer);
 		}
 	} while(b[0] != (char)EOF);
 }

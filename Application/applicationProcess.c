@@ -25,25 +25,6 @@ int main(int argc, char * argv[])
 	pid_t* children;
 	int* status;
 
-//semaphore
-	char* semName = calloc(MAX_PID_LENGTH+4, sizeof(char));
-	sprintf(semName, "/sem%d", getpid());
-    sem_unlink(semName);
-	sem_t* mutexSemaphore = sem_open(semName, O_CREAT|O_EXCL, 0777, 1); //ver valgrind jode
-	//sem_post(mutexSemaphore);
-
-//create shm name
-
-	char shmName[MAX_PID_LENGTH+4];
-	sprintf(shmName, "/shm%d", getpid());
-
-//create SHM 
-	int shmFd = shm_open(shmName, O_WRONLY | O_CREAT, 0777);
-	checkFail(shmFd, "shm_open() Failed");
-	int size = (MSG_SIZE + HASH_SIZE + 2) * argc;
-	void * shmPointer = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, shmFd, 0);
-	checkIsNotNull(shmPointer," Null shmPointer");
-
 	printf("applicationProcess PID = %d\n", (int)getpid());
 
 //create the output.txt
@@ -85,6 +66,25 @@ int main(int argc, char * argv[])
 
 void reciveHashes(messageQueueADT mqHashes, int shmFd, long qty, sem_t* semaphore, FILE * outputFile)
 {
+	//semaphore
+	char* semName = calloc(MAX_PID_LENGTH+4, sizeof(char));
+	sprintf(semName, "/sem%d", getpid());
+    sem_unlink(semName);
+	sem_t* mutexSemaphore = sem_open(semName, O_CREAT|O_EXCL, 0777, 1); //ver valgrind jode
+	//sem_post(mutexSemaphore);
+
+//create shm name
+
+	char shmName[MAX_PID_LENGTH+4];
+	sprintf(shmName, "/shm%d", getpid());
+
+//create SHM 
+	int shmFd = shm_open(shmName, O_WRONLY | O_CREAT, 0777);
+	checkFail(shmFd, "shm_open() Failed");
+	int size = (MSG_SIZE + HASH_SIZE + 2) * argc;
+	void * shmPointer = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, shmFd, 0);
+	checkIsNotNull(shmPointer," Null shmPointer");
+	
 	fd_set rfd;
 	int fd = getDescriptor(mqHashes);
  	FD_ZERO( &rfd );
