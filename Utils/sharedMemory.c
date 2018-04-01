@@ -26,7 +26,8 @@ sem_t* createSemaphore(sharedMemoryADT shm);
 sem_t* openSemaphore(sharedMemoryADT shm);
 
 
-sharedMemoryADT sharedMemoryCreator(const int id, const long memSize, const long flags)
+sharedMemoryADT sharedMemoryCreator(const int id, const long memSize, 
+                                                              const long flags)
 {   
     sharedMemoryADT shm = malloc(sizeof(sharedMemoryCDT));
     shm->id = id;
@@ -38,7 +39,8 @@ sharedMemoryADT sharedMemoryCreator(const int id, const long memSize, const long
 
     shm->fd = shm_open(shm->shmName, flags | O_CREAT, 0777);
     checkFail(shm->fd, "shm_open() Failed");
-    shm->pointer = mmap(NULL, memSize, PROT_READ, MAP_SHARED, shm->fd, (off_t)0);
+    shm->pointer = mmap(NULL, memSize, PROT_READ, MAP_SHARED, 
+                                                            shm->fd, (off_t)0);
     checkIsNotNull(shm->pointer," Null shmPointer");
     if(shm->pointer == MAP_FAILED)
         fail("mmap() Failed");

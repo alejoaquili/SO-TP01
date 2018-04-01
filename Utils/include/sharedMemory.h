@@ -5,7 +5,8 @@
 
 typedef struct sharedMemoryCDT* sharedMemoryADT;
 
-sharedMemoryADT sharedMemoryCreator(const int id, const long memSize, const long flags);
+sharedMemoryADT sharedMemoryCreator(const int id, const long memSize, 
+															 const long flags);
 
 void deleteShMem(sharedMemoryADT shm);
 

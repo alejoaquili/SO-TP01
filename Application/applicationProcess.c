@@ -12,10 +12,18 @@
 
 void enqueueFiles(char** nameFiles, long qty);
 void readHashes(sharedMemoryADT shm, FILE * outputFile);
-void reciveHashes(messageQueueADT mqHashes, sharedMemoryADT shm, long qty, FILE * outputFile);
+void reciveHashes(messageQueueADT mqHashes, sharedMemoryADT shm, long qty, 
+															FILE * outputFile);	
 
 int main(int argc, char * argv[]) 
 {
+
+	if(argc-1 > 10)
+	{
+		char command[50];
+		sprintf(command, "echo %d > /proc/sys/fs/mqueue/msg_max", argc-1);
+		system(command);
+	}
 	messageQueueADT mqHashes;
 	pid_t* children; 
 	int* status = calloc(SLAVE_QTY, sizeof(int));
@@ -30,10 +38,11 @@ int main(int argc, char * argv[])
 
 	enqueueFiles(argv + 1, argc - 1);
 	
-	mqHashes = messageQueueCreator(QUEUE_HASH_STORAGE, O_RDONLY, argc - 1, MSG_SIZE + HASH_SIZE + 2);
+	mqHashes = messageQueueCreator(QUEUE_HASH_STORAGE, O_RDONLY, argc - 1, 
+													 MSG_SIZE + HASH_SIZE + 2);
 	
 	children = childFactory(SLAVE_QTY, SLAVE_PATH);
-	
+
 	reciveHashes(mqHashes, shm, argc - 1, outputFile);
 
 	fclose(outputFile);
@@ -47,13 +56,15 @@ int main(int argc, char * argv[])
 	printf("All Child process finished.\n");
 	deleteMQ(QUEUE_FILE_NAME);
 	deleteMQ(QUEUE_HASH_STORAGE);
+
 	printf("Waiting for a view process ...\n");
 	sleep(5);
 	deleteShMem(shm);
 	return 0;
 }
 
-void reciveHashes(messageQueueADT mqHashes, sharedMemoryADT shm, long qty, FILE * outputFile)
+void reciveHashes(messageQueueADT mqHashes, sharedMemoryADT shm, long qty, 
+															 FILE * outputFile)
 {
 	int fd = getDescriptor(mqHashes);
 	ssize_t result;

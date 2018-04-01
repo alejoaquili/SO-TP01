@@ -67,7 +67,8 @@ void enqueueMessages(messageQueueADT mq, char** msgs, const int qty)
 
 ssize_t readMessage(messageQueueADT mq, char* buffer, unsigned int* priority)
 {
-	return mq_receive(mq->descriptor, buffer, mq->attributes.mq_msgsize, priority);
+	return mq_receive(mq->descriptor, buffer, mq->attributes.mq_msgsize, 
+																	 priority);
 }
 
 void setMQAttributes(messageQueueADT mq, const long maxMsg,const long msgSize)

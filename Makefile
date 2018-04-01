@@ -26,10 +26,7 @@ clean:
 	cd Test; make clean
 
 run: 
-	@chmod 777 ./run.sh
-	@chmod 777 ./init.sh
-	@echo "Running"
-	@./run.sh
+	@echo "To run the program please enter: <sudo ./Application/applicationProcess.out><file1, file2, ..., fileN>\n"
 
 test:
 	cd Test; make all
