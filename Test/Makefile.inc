@@ -1,7 +1,7 @@
 
 CC       = gcc
 # Compiling Flags:
-CFLAGS   = -c -g -Wall -pedantic -std=c99 -I./include -I./../Utils/include -I./../Application/include -I./../Slave/include
+CFLAGS   = -c -g -Wall -pedantic -std=c99 -I./include -I./../Utils/include
 
 LINKER 	 = gcc
 # Linking Flags:

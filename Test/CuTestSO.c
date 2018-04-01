@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "include/CuTest.h"
+#include "CuTest.h"
 #include "messageQueue.h"
 #include "errorslib.h"
 #include <unistd.h>
@@ -9,9 +9,10 @@
 #include <sys/stat.h>
 #include <sys/mman.h> 
 #include <fcntl.h>
-#include "include/CuTestSO.h"
+#include "CuTestSO.h"
 #include <mqueue.h>
 #include "string.h"
+#include "sharedMemory.h"
 
 /*-----------------------------------
  variables for message queue testing

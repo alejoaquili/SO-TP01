@@ -29,6 +29,7 @@ run:
 	@echo "To run the program please enter: <sudo ./Application/applicationProcess.out><file1, file2, ..., fileN>\n"
 
 test:
+	cd Utils; make all
 	cd Test; make all
 	
 .PHONY: utils application slave view clean test all
