@@ -11,13 +11,16 @@ void deleteShMem(sharedMemoryADT shm);
 
 int getId(sharedMemoryADT shm);
 
+int getFd(sharedMemoryADT shm);
+
+
 sharedMemoryADT openShMem(const int id, const long flags);
 
 void closeShMem(sharedMemoryADT shm);
 
 ssize_t writeShMem(sharedMemoryADT shm, const void* buffer , size_t nbytes);
 
-ssize_t readShMem(sharedMemoryADT shm, const void* buffer , size_t nbytes);
+ssize_t readShMem(sharedMemoryADT shm, void* buffer , size_t nbytes);
 
 #endif
 

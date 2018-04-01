@@ -14,7 +14,7 @@ rm       = rm -rf
 all: clean obj
 
 obj:$(SOURCES)
-	$(CC) -c $(CFLAGS) $(SOURCES) -lrt
+	$(CC) -c $(CFLAGS) $(SOURCES) -lrt -lpthread
 	@echo "Utils Compilation complete."
 
 %.o : %.c

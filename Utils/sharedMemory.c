@@ -38,9 +38,10 @@ sharedMemoryADT sharedMemoryCreator(const int id, const long memSize, const long
 
     shm->fd = shm_open(shm->shmName, flags | O_CREAT, 0777);
     checkFail(shm->fd, "shm_open() Failed");
-    shm->pointer = mmap(0, memSize, PROT_READ | PROT_WRITE, MAP_SHARED, shm->fd, 0);
+    shm->pointer = mmap(NULL, memSize, PROT_READ, MAP_SHARED, shm->fd, (off_t)0);
     checkIsNotNull(shm->pointer," Null shmPointer");
-    
+    if(shm->pointer == MAP_FAILED)
+        fail("mmap() Failed");
     return shm;
 }
 
@@ -49,6 +50,12 @@ int getId(sharedMemoryADT shm)
     checkIsNotNull(shm, "Null sharedMemoryADT pointer");
     return shm->id;
 }
+
+int getFd(sharedMemoryADT shm)
+{
+    return shm->fd;
+}
+
 
 void deleteShMem(sharedMemoryADT shm)
 {
@@ -73,6 +80,7 @@ sharedMemoryADT openShMem(const int id, const long flags)
     checkIsNotNull(shm->semaphore, "sem_open() Failed");
     shm->fd = shm_open(shm->shmName, flags, 0777);
     checkFail(shm->fd, "shm_open() Failed");
+    return shm;
 }
 
 void closeShMem(sharedMemoryADT shm)
@@ -106,7 +114,7 @@ ssize_t writeShMem(sharedMemoryADT shm, const void* buffer , size_t nbytes)
     return result;
 }
 
-ssize_t readShMem(sharedMemoryADT shm, const void* buffer , size_t nbytes)
+ssize_t readShMem(sharedMemoryADT shm, void* buffer , size_t nbytes)
 {
     sem_wait(shm->semaphore);
     ssize_t result = read(shm->fd, buffer, nbytes);

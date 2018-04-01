@@ -9,10 +9,10 @@
 #define QUEUE_FILE_NAME  "/filesToHash"
 #define QUEUE_HASH_STORAGE  "/hashToStorage"
 #define SLAVE_PATH "./Slave/slaveProcess.out"
-#define MAX_PID_LENGTH 6
+#define MAX_PID_LENGTH 10
 
 
-void freeSpace(int qty, void * memory, ...);
+void freeSpace(int qty, ...);
 
 #endif
 
