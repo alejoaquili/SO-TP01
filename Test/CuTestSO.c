@@ -38,9 +38,9 @@ variables for shared memory testing
 */
 
 sharedMemoryADT sharedMemory;
-int id;
+int sharedMemoryId;
 long sharedMemoryFlags = O_RDWR;
-
+long sharedMemorySize = 256;
 
 //------------------------------------
 
@@ -70,6 +70,21 @@ void testQueueOpen(CuTest* tc)
 }
 
 
+void testSharedMemoryCreation(CuTest* tc)
+{
+	givenAnId();
+	CuAssert(tc, " Fail to create a shared memory", whenSharedMemoryCreated());
+	deleteShMem(sharedMemory);
+}
+
+
+void testSharedMemoryOpen(CuTest* tc)
+{
+	givenASharedMemory();
+	CuAssert(tc, "Fail to open an existing shared memory", whenSharedMemoryOpened());
+	deleteShMem(sharedMemory);
+
+}
 
 
 
@@ -77,7 +92,17 @@ void testQueueOpen(CuTest* tc)
 
 
 
+void givenAnId()
+{
+	sharedMemoryId = getpid();
+}
 
+void givenASharedMemory()
+{
+	givenAnId();
+	sharedMemory = sharedMemoryCreator(sharedMemoryId, sharedMemorySize,
+		sharedMemoryFlags);
+}
 
 void givenAMessage()
 {
@@ -97,9 +122,25 @@ void givenAMessageQueue()
 
 
 
+int whenSharedMemoryOpened()
+{
+	sharedMemoryADT testSharedmemory =  openShMem(sharedMemoryId, sharedMemoryFlags);
+	if(getId(testSharedmemory) != getId(sharedMemory))
+		return 0;
 
+	return 1;
+}
 
+int whenSharedMemoryCreated()
+{
+	sharedMemory =  sharedMemoryCreator(sharedMemoryId, sharedMemorySize,
+		sharedMemoryFlags);
+	if(sharedMemory == NULL)
+		return 0;
 
+	return 1;
+
+}
 
 int whenOpenMessageQueue()
 {
@@ -148,5 +189,7 @@ CuSuite* CuQueueGetSuite(void)
 	SUITE_ADD_TEST(suite, testCreateMessageQueue);
 	SUITE_ADD_TEST(suite, testQueueMessage);
 	SUITE_ADD_TEST(suite, testQueueOpen);
+	SUITE_ADD_TEST(suite, testSharedMemoryCreation);
+	SUITE_ADD_TEST(suite, testSharedMemoryOpen);
 	return suite;
 }
