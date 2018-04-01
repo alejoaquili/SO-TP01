@@ -68,15 +68,12 @@ void reciveHashes(messageQueueADT mqHashes, sharedMemoryADT shm, long qty,
 {
 	int fd = getDescriptor(mqHashes);
 	ssize_t result;
-	fd_set rfd;
-
- 	FD_ZERO( &rfd );
-    FD_SET(fd, &rfd);
+	
+	fd_set rfd = necesitoUnNombreParaEstaFuncion(fd);
 
     while(qty--)
     {
-    	int result = select(fd + 1, &rfd, 0, 0, NULL);
-    	checkFail(result, "select() Failed");
+    	waitForOtherProcess(fd, rfd);
     	readHashes(shm, outputFile);
 	}
 	char * centinela = calloc (MSG_SIZE + HASH_SIZE + 2, sizeof(char));

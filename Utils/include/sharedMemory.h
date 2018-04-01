@@ -10,10 +10,9 @@ sharedMemoryADT sharedMemoryCreator(const int id, const long memSize,
 
 void deleteShMem(sharedMemoryADT shm);
 
-int getId(sharedMemoryADT shm);
+int getShMemId(sharedMemoryADT shm);
 
-int getFd(sharedMemoryADT shm);
-
+int getShMemFd(sharedMemoryADT shm);
 
 sharedMemoryADT openShMem(const int id, const long flags);
 

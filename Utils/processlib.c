@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <stdlib.h>
+#include <sys/select.h>
 #include <sys/types.h>
 #include "errorslib.h"
 
@@ -40,3 +41,16 @@ pid_t * childFactoryWithArgs(int qty, char* childPath, char** args)
 	return children;
 }
 
+fd_set necesitoUnNombreParaEstaFuncion(int fd)
+{
+	fd_set rfd;
+ 	FD_ZERO( &rfd );
+    FD_SET(fd, &rfd);
+    return rfd;
+}
+
+void waitForOtherProcess(int fd, fd_set rfd)
+{
+    int result = select(fd + 1, &rfd, 0, 0, NULL);
+   	checkFail(result, "select() Failed");
+}

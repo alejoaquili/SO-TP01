@@ -47,13 +47,13 @@ sharedMemoryADT sharedMemoryCreator(const int id, const long memSize,
     return shm;
 }
 
-int getId(sharedMemoryADT shm)
+int getShMemId(sharedMemoryADT shm)
 {
     checkIsNotNull(shm, "Null sharedMemoryADT pointer");
     return shm->id;
 }
 
-int getFd(sharedMemoryADT shm)
+int getShMemFd(sharedMemoryADT shm)
 {
     return shm->fd;
 }

@@ -20,12 +20,18 @@ void fail(char * msg)
 
 void checkIsNotNull(void * aPointer, char* msg)
 {
-	if( aPointer == (void *) 0 )
+	if(aPointer == (void *) 0)
 		fail(msg);
 }
 
 void checkIsNull(void * aPointer, char* msg)
 {
-	if( aPointer != (void *) 0 )
+	if(aPointer != (void *) 0)
+		fail(msg);
+}
+
+void checkAreEquals(int aNumber, int otherNumber, char* msg)
+{
+	if(aNumber != otherNumber)
 		fail(msg);
 }
