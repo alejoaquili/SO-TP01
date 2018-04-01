@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "CuTest.h"
+#include "include/CuTest.h"
 
 /*-------------------------------------------------------------------------*
  * Helper functions
