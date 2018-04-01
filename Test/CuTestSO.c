@@ -42,6 +42,9 @@ int sharedMemoryId;
 long sharedMemoryFlags = O_RDWR;
 long sharedMemorySize = 256;
 
+char * sharedMemoryMessage = "testing";
+long sharedMemoryMessageLength = 8;
+
 //------------------------------------
 
 
@@ -86,7 +89,12 @@ void testSharedMemoryOpen(CuTest* tc)
 
 }
 
-
+void testReadWriteSharedMemory(CuTest* tc)
+{
+	givenASharedMemory();
+	CuAssert(tc, "Fail Read or Write operation", whenSharedMemoryWriteRead());
+	deleteShMem(sharedMemory);	
+}
 
 
 
@@ -119,6 +127,19 @@ void givenAMessageQueue()
 
 
 
+int whenSharedMemoryWriteRead()
+{
+	writeShMem(sharedMemory, sharedMemoryMessage, sharedMemoryMessageLength);
+	char * readMessage = calloc(sharedMemoryMessageLength, sizeof(char));
+	readShMem(sharedMemory, readMessage, sharedMemoryMessageLength);
+	int response = 1;
+	
+	if(strcmp(readMessage, sharedMemoryMessage) != 0)
+		response = 0;
+
+	//free(readMessage);
+	return response;
+}
 
 
 
@@ -191,5 +212,6 @@ CuSuite* CuQueueGetSuite(void)
 	SUITE_ADD_TEST(suite, testQueueOpen);
 	SUITE_ADD_TEST(suite, testSharedMemoryCreation);
 	SUITE_ADD_TEST(suite, testSharedMemoryOpen);
+	SUITE_ADD_TEST(suite, testReadWriteSharedMemory);
 	return suite;
 }
