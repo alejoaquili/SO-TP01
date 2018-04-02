@@ -146,7 +146,7 @@ int whenSharedMemoryWriteRead()
 int whenSharedMemoryOpened()
 {
 	sharedMemoryADT testSharedmemory =  openShMem(sharedMemoryId, sharedMemoryFlags);
-	if(getId(testSharedmemory) != getId(sharedMemory))
+	if(getShMemId(testSharedmemory) != getShMemId(sharedMemory))
 		return 0;
 
 	return 1;
