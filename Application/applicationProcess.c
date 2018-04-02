@@ -10,28 +10,27 @@
 #include "processlib.h"
 #include "sharedMemory.h"
 
+void checkMaxMsgQueue(int qty);
 void enqueueFiles(char** nameFiles, long qty);
 void readHashes(sharedMemoryADT shm, FILE * outputFile);
-void reciveHashes(messageQueueADT mqHashes, sharedMemoryADT shm, long qty, 
+void recieveHashes(messageQueueADT mqHashes, sharedMemoryADT shm, long qty, 
 															FILE * outputFile);	
+void readAHash(sharedMemoryADT shm, char* buffer);
+void shareAHash(sharedMemoryADT shm, FILE * outputFile, char* fileHashed);
+void setASentinelInShMem(sharedMemoryADT shm);
 
 int main(int argc, char * argv[]) 
 {
+	checkMaxMsgQueue(argc - 1);
 
-	if(argc-1 > 10)
-	{
-		char command[50];
-		sprintf(command, "echo %d > /proc/sys/fs/mqueue/msg_max", argc-1);
-		system(command);
-	}
 	messageQueueADT mqHashes;
 	pid_t* children; 
-	int* status = calloc(SLAVE_QTY, sizeof(int));
-	int size = (MSG_SIZE + HASH_SIZE + 2) * (argc -1), pid = getpid();
+	int* childrenStatus = calloc(SLAVE_QTY, sizeof(int));
+	int memSize = (MSG_SIZE + HASH_SIZE + 2) * (argc -1), pid = getpid();
 
 	printf("applicationProcess PID = %d\n", pid);
 
-	sharedMemoryADT shm = sharedMemoryCreator(pid, size, O_RDWR);
+	sharedMemoryADT shm = sharedMemoryCreator(pid, memSize, O_RDWR);
 
 	FILE * outputFile = fopen("./output.txt", "w+");
 	checkIsNotNull(outputFile, "fopen() Failed");
@@ -40,20 +39,18 @@ int main(int argc, char * argv[])
 	
 	mqHashes = messageQueueCreator(QUEUE_HASH_STORAGE, O_RDONLY, argc - 1, 
 													 MSG_SIZE + HASH_SIZE + 2);
-	
 	children = childFactory(SLAVE_QTY, SLAVE_PATH);
-
 	reciveHashes(mqHashes, shm, argc - 1, outputFile);
 
 	fclose(outputFile);
 
 	for(int j = 0; j < SLAVE_QTY; j++)
-		waitpid(children[j], &(status[j]), 0);
+		waitpid(children[j], &(childrenStatus[j]), 0);
 
-	freeSpace(2, children, status);
-
+	freeSpace(2, children, childrenStatus);
 	closeMQ(mqHashes);
 	printf("All Child process finished.\n");
+
 	deleteMQ(QUEUE_FILE_NAME);
 	deleteMQ(QUEUE_HASH_STORAGE);
 
@@ -63,41 +60,52 @@ int main(int argc, char * argv[])
 	return 0;
 }
 
-void reciveHashes(messageQueueADT mqHashes, sharedMemoryADT shm, long qty, 
+void recieveHashes(messageQueueADT mqHashes, sharedMemoryADT shm, long qty, 
 															 FILE * outputFile)
 {
 	int fd = getDescriptor(mqHashes);
-	ssize_t result;
-	
-	fd_set rfd = necesitoUnNombreParaEstaFuncion(fd);
+	fd_set fdReadSet = createASetOfFds(1, fd);
 
     while(qty--)
     {
-    	waitForOtherProcess(fd, rfd);
-    	readHashes(shm, outputFile);
+    	char buffer[MSG_SIZE + HASH_SIZE + 2];
+    	waitForFds(fd, fdReadSet);
+    	readAHash(shm, buffer);
+    	shareAHash(shm, outputFile, buffer);
 	}
-	char * centinela = calloc (MSG_SIZE + HASH_SIZE + 2, sizeof(char));
-	centinela[0] = -1;
-	result = writeShMem(shm, centinela, MSG_SIZE + HASH_SIZE + 2);
-	checkFail(result, "writeShMem() Failed");
-	free(centinela);
+	setASentinelInShMem(shm);
 }
 
-void readHashes(sharedMemoryADT shm, FILE * outputFile)
+void readAHash(sharedMemoryADT shm, char* buffer)
 {
-	ssize_t bytesRead, result;
-	char fileHashed[MSG_SIZE + HASH_SIZE + 2];
+	ssize_t bytesRead;
 	messageQueueADT mqHashes = openMQ(QUEUE_HASH_STORAGE, O_RDONLY);
 
-	bytesRead = readMessage(mqHashes, fileHashed, NULL);
+	bytesRead = readMessage(mqHashes, buffer, NULL);
 	checkFail(bytesRead, "readMessage() Failed");
+	closeMQ(mqHashes);
+}
 
-	printf("%s\n", fileHashed);
+void shareAHash(sharedMemoryADT shm, FILE * outputFile, char* fileHashed)
+{
+	ssize_t result;
 
 	result = writeShMem(shm, fileHashed, MSG_SIZE + HASH_SIZE + 2);
 	checkFail(result, "writeShMem() Failed");
-	closeMQ(mqHashes);
 	fprintf(outputFile, "%s\n", fileHashed);
+
+	printf("%s\n", fileHashed);
+}
+
+void setASentinelInShMem(sharedMemoryADT shm)
+{
+	ssize_t result;
+	char * sentinel = calloc (MSG_SIZE + HASH_SIZE + 2, sizeof(char));
+	sentinel[0] = -1;
+
+	result = writeShMem(shm, sentinel, MSG_SIZE + HASH_SIZE + 2);
+	checkFail(result, "writeShMem() Failed");
+	free(sentinel);
 }
 
 void enqueueFiles(char** nameFiles, long qty)
@@ -106,6 +114,16 @@ void enqueueFiles(char** nameFiles, long qty)
 	mqFiles = messageQueueCreator(QUEUE_FILE_NAME, O_WRONLY, qty, MSG_SIZE);
 	enqueueMessages(mqFiles, nameFiles, qty);
 	closeMQ(mqFiles);
+}
+
+void checkMaxMsgQueue(int qty)
+{
+	if(qty > 10)
+	{
+		char command[50];
+		sprintf(command, "echo %d > /proc/sys/fs/mqueue/msg_max", qty);
+		system(command);
+	}
 }
 
 void freeSpace(int qty, ...) 

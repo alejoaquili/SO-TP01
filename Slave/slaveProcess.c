@@ -17,7 +17,11 @@ int main(int argc, char * argv[])
 
 	mqFiles = openMQ(QUEUE_FILE_NAME, O_RDONLY);
 	while((bytesRead = readMessage(mqFiles, fileToHash, NULL)) >= 0)
-		hashAFile(bytesRead, fileToHash);
+	{
+		char hashedFile[MSG_SIZE + HASH_SIZE + 2];
+		hashTheFile(bytesRead, fileToHash, hashedFile);
+		sendTheHash(hashedFile);
+	}
 	
 	if(errno != EAGAIN) 
 		fail("readMessage() Failed");
@@ -25,7 +29,15 @@ int main(int argc, char * argv[])
 	return 0;
 }
 
-void hashAFile(ssize_t bytesRead, char * fileToHash)
+void sendTheHash(char* hashedFile)
+{
+	messageQueueADT mqHashes;
+	mqHashes = openMQ(QUEUE_HASH_STORAGE, O_WRONLY);
+	enqueueMessage(mqHashes, hashedFile);
+	closeMQ(mqHashes);
+}
+
+void hashTheFile(ssize_t bytesRead, char* fileToHash, char* buffer)
 {
 	pid_t child;
 	int fd[2];
@@ -38,23 +50,18 @@ void hashAFile(ssize_t bytesRead, char * fileToHash)
 	if (child == 0)
 		childProcess(fd, fileToHash);
 	else
-		parentProcess(fd, fileToHash);
+		parentProcess(fd, fileToHash, buffer);
 }
 
-void parentProcess(int * fd, char* fileToHash)
+void parentProcess(int * fd, char* fileToHash, char* buffer)
 {
-	char buffer[MSG_SIZE + HASH_SIZE + 2], buffer2[MSG_SIZE + HASH_SIZE + 2];
-	char hash[HASH_SIZE];
-	messageQueueADT mqHashes;
+	char buffer2[MSG_SIZE + HASH_SIZE + 2], hash[HASH_SIZE];
 
 	close(fd[1]);
-	read(fd[0], buffer, sizeof(buffer));
+	read(fd[0], buffer2, sizeof(buffer2));
 
-	sscanf(buffer, "%32s ", hash);
-	sprintf(buffer2, "%s: %s%c", fileToHash, hash, 0);
-	mqHashes = openMQ(QUEUE_HASH_STORAGE, O_WRONLY);
-	enqueueMessage(mqHashes, buffer2);
-	closeMQ(mqHashes);
+	sscanf(buffer2, "%32s ", hash);
+	sprintf(buffer, "%s: %s%c", fileToHash, hash, 0);
 } 
 
 void childProcess(int * fd, char * fileToHash)

@@ -16,8 +16,7 @@ int main(int argc, char * argv[])
 
 	int id = atoi(argv[1]);
 	sharedMemoryADT shm = openShMem(id, O_RDONLY);
-
-	fd_set rfd = necesitoUnNombreParaEstaFuncion(getShMemFd(shm));
+	fd_set rfd = createASetOfFds(1, getShMemFd(shm));
 
     char* buffer;
     do
@@ -25,7 +24,6 @@ int main(int argc, char * argv[])
 		char newBuffer[MSG_SIZE + HASH_SIZE + 2];
     	buffer = newBuffer;
     	int readBytes = readTheNextHash(shm, buffer, rfd);
-
     	printTheHash(buffer, readBytes);
 	}
 	while(buffer[0] != (char)EOF);
@@ -35,11 +33,11 @@ int main(int argc, char * argv[])
 
 int readTheNextHash(sharedMemoryADT shm, char* buffer, fd_set rfd)
 {
-    waitForOtherProcess(getShMemFd(shm), rfd);
+    waitForFds(getShMemFd(shm), rfd);
+   
 	ssize_t readBytes = readShMem(shm, buffer , MSG_SIZE + HASH_SIZE + 2);
 	checkFail(readBytes, "read() Failed");
 	buffer[readBytes] = 0;
-
 	return readBytes;
 }
 

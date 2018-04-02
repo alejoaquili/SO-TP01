@@ -58,7 +58,6 @@ int getShMemFd(sharedMemoryADT shm)
     return shm->fd;
 }
 
-
 void deleteShMem(sharedMemoryADT shm)
 {
     checkIsNotNull(shm->pointer, "Null shm pointer");

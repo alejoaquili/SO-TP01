@@ -5,9 +5,9 @@ pid_t * childFactory(int qty, char* childName);
 
 pid_t * childFactoryWithArgs(int qty, char* childPath, char** args);
 
-fd_set necesitoUnNombreParaEstaFuncion(int fd);
+fd_set createASetOfFds(int qty, ...);
 
-void waitForOtherProcess(int fd, fd_set rfd);
+void waitForFds(int lastFd, fd_set rfd);
 
 #endif
 
