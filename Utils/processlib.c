@@ -1,9 +1,10 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/select.h>
-#include <stdarg.h>
 #include <sys/types.h>
+#include <stdarg.h>
 #include "errorslib.h"
+#include "processlib.h"
 
 pid_t * childFactory(int qty, char* childName)
 {
@@ -62,5 +63,16 @@ void waitForFds(int lastFd, fd_set fdReadSet)
 {
     int result = select(lastFd + 1, &fdReadSet, 0, 0, NULL);
    	checkFail(result, "select() Failed");
+}
+
+void freeSpace(int qty, ...) 
+{
+	va_list args;
+    va_start(args, qty);
+
+    for (int i = 0; i < qty; i++)
+        free(va_arg(args, void*));
+
+    va_end(args);
 }
 

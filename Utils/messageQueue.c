@@ -78,7 +78,7 @@ void setMQAttributes(messageQueueADT mq, const long maxMsg,const long msgSize)
 	checkFail(result, "mq_setattr() Failed");
 }
 
-mqd_t getDescriptor(messageQueueADT mq)
+mqd_t getMQDescriptor(messageQueueADT mq)
 {
 	return mq->descriptor;
 }

@@ -26,7 +26,7 @@ int main(int argc, char * argv[])
 	messageQueueADT mqHashes;
 	pid_t* children; 
 	int* childrenStatus = calloc(SLAVE_QTY, sizeof(int));
-	int memSize = (MSG_SIZE + HASH_SIZE + 2) * (argc -1), pid = getpid();
+	int memSize = (MSG_SIZE) * (argc -1), pid = getpid();
 
 	printf("applicationProcess PID = %d\n", pid);
 
@@ -38,9 +38,9 @@ int main(int argc, char * argv[])
 	enqueueFiles(argv + 1, argc - 1);
 	
 	mqHashes = messageQueueCreator(QUEUE_HASH_STORAGE, O_RDONLY, argc - 1, 
-													 MSG_SIZE + HASH_SIZE + 2);
+													 				 MSG_SIZE);
 	children = childFactory(SLAVE_QTY, SLAVE_PATH);
-	reciveHashes(mqHashes, shm, argc - 1, outputFile);
+	recieveHashes(mqHashes, shm, argc - 1, outputFile);
 
 	fclose(outputFile);
 
@@ -63,13 +63,13 @@ int main(int argc, char * argv[])
 void recieveHashes(messageQueueADT mqHashes, sharedMemoryADT shm, long qty, 
 															 FILE * outputFile)
 {
-	int fd = getDescriptor(mqHashes);
-	fd_set fdReadSet = createASetOfFds(1, fd);
+	int mqFd = getMQDescriptor(mqHashes);
+	fd_set fdReadSet = createASetOfFds(1, mqFd);
 
     while(qty--)
     {
-    	char buffer[MSG_SIZE + HASH_SIZE + 2];
-    	waitForFds(fd, fdReadSet);
+    	char buffer[MSG_SIZE];
+    	waitForFds(mqFd, fdReadSet);
     	readAHash(shm, buffer);
     	shareAHash(shm, outputFile, buffer);
 	}
@@ -90,7 +90,7 @@ void shareAHash(sharedMemoryADT shm, FILE * outputFile, char* fileHashed)
 {
 	ssize_t result;
 
-	result = writeShMem(shm, fileHashed, MSG_SIZE + HASH_SIZE + 2);
+	result = writeShMem(shm, fileHashed, MSG_SIZE);
 	checkFail(result, "writeShMem() Failed");
 	fprintf(outputFile, "%s\n", fileHashed);
 
@@ -100,10 +100,10 @@ void shareAHash(sharedMemoryADT shm, FILE * outputFile, char* fileHashed)
 void setASentinelInShMem(sharedMemoryADT shm)
 {
 	ssize_t result;
-	char * sentinel = calloc (MSG_SIZE + HASH_SIZE + 2, sizeof(char));
+	char * sentinel = calloc (MSG_SIZE, sizeof(char));
 	sentinel[0] = -1;
 
-	result = writeShMem(shm, sentinel, MSG_SIZE + HASH_SIZE + 2);
+	result = writeShMem(shm, sentinel, MSG_SIZE);
 	checkFail(result, "writeShMem() Failed");
 	free(sentinel);
 }
@@ -111,7 +111,7 @@ void setASentinelInShMem(sharedMemoryADT shm)
 void enqueueFiles(char** nameFiles, long qty)
 {
 	messageQueueADT mqFiles;
-	mqFiles = messageQueueCreator(QUEUE_FILE_NAME, O_WRONLY, qty, MSG_SIZE);
+	mqFiles = messageQueueCreator(QUEUE_FILE_NAME, O_WRONLY, qty, FILE_SIZE);
 	enqueueMessages(mqFiles, nameFiles, qty);
 	closeMQ(mqFiles);
 }
@@ -124,17 +124,6 @@ void checkMaxMsgQueue(int qty)
 		sprintf(command, "echo %d > /proc/sys/fs/mqueue/msg_max", qty);
 		system(command);
 	}
-}
-
-void freeSpace(int qty, ...) 
-{
-	va_list args;
-    va_start(args, qty);
-
-    for (int i = 0; i < qty; i++)
-        free(va_arg(args, void*));
-
-    va_end(args);
 }
 
 

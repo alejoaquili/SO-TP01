@@ -12,13 +12,13 @@
 int main(int argc, char * argv[]) 
 {
 	messageQueueADT mqFiles;
-	char fileToHash[MSG_SIZE];
+	char fileToHash[FILE_SIZE];
 	ssize_t bytesRead;
 
 	mqFiles = openMQ(QUEUE_FILE_NAME, O_RDONLY);
 	while((bytesRead = readMessage(mqFiles, fileToHash, NULL)) >= 0)
 	{
-		char hashedFile[MSG_SIZE + HASH_SIZE + 2];
+		char hashedFile[MSG_SIZE];
 		hashTheFile(bytesRead, fileToHash, hashedFile);
 		sendTheHash(hashedFile);
 	}
@@ -55,7 +55,7 @@ void hashTheFile(ssize_t bytesRead, char* fileToHash, char* buffer)
 
 void parentProcess(int * fd, char* fileToHash, char* buffer)
 {
-	char buffer2[MSG_SIZE + HASH_SIZE + 2], hash[HASH_SIZE];
+	char buffer2[MSG_SIZE], hash[HASH_SIZE];
 
 	close(fd[1]);
 	read(fd[0], buffer2, sizeof(buffer2));
@@ -68,13 +68,13 @@ void childProcess(int * fd, char * fileToHash)
 {
 	dup2(fd[1], 1);
 	close(fd[0]);
-	md5sum(MSG_SIZE + MD5SUM_LENGTH, fileToHash);
+	md5sum(fileToHash);
 	exit(1);
 }
 
-void md5sum(size_t commandLength, char * fileToHash)
+void md5sum(char * fileToHash)
 {
-	char command [commandLength];
+	char command [FILE_SIZE + MD5SUM_LENGTH];
 	sprintf(command, "%s %s", "md5sum", fileToHash); 
 	system(command);
 }

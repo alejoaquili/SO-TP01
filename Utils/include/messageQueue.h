@@ -23,7 +23,7 @@ void setMQAttributes(messageQueueADT mq, const long maxMsg,const long msgSize);
 
 int notifyMQ(messageQueueADT mq, struct sigevent* signalEvent);
 
-mqd_t getDescriptor(messageQueueADT mq);
+mqd_t getMQDescriptor(messageQueueADT mq);
 
 #endif
 

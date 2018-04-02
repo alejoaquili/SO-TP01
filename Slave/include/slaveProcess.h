@@ -5,7 +5,7 @@
 
 void hashTheFile(ssize_t bytesRead, char * fileToHash, char* buffer);
 
-void md5sum(size_t commandLength, char * fileToHash);
+void md5sum(char * fileToHash);
 
 void childProcess(int * fd, char * fileToHash);
 

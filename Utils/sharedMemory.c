@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <pthread.h>
+#include "processlib.h"
 #include <fcntl.h>
 #include <semaphore.h>
 #include "errorslib.h"
@@ -64,9 +65,7 @@ void deleteShMem(sharedMemoryADT shm)
     munmap(shm->pointer, shm->memSize);
     shm_unlink(shm->shmName);
     sem_unlink(shm->semName);
-    free(shm->shmName);
-    free(shm->semName);
-    free(shm);
+    freeSpace(3, shm->shmName, shm->semName, shm);
 }
 
 sharedMemoryADT openShMem(const int id, const long flags) 
@@ -87,9 +86,7 @@ sharedMemoryADT openShMem(const int id, const long flags)
 void closeShMem(sharedMemoryADT shm)
 {
     checkIsNull(shm->pointer, "closeShMem() Failed, you must use deletShm()");
-    free(shm->shmName);
-    free(shm->semName);
-    free(shm);
+    freeSpace(3, shm->shmName, shm->semName, shm);
 }
 
 sem_t* createSemaphore(sharedMemoryADT shm)
