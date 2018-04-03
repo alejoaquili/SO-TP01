@@ -91,8 +91,8 @@ void testSharedMemoryOpen(CuTest* tc)
 
 void testReadWriteSharedMemory(CuTest* tc)
 {
-	givenASharedMemory();
-	CuAssert(tc, "Fail Read or Write operation", whenSharedMemoryWriteRead());
+	//givenASharedMemory();
+	CuAssert(tc, "Fail Read or Write operation", whenSharedMemoryWrittenaAndRead());
 	deleteShMem(sharedMemory);	
 }
 
@@ -127,18 +127,32 @@ void givenAMessageQueue()
 
 
 
-int whenSharedMemoryWriteRead()
+int whenSharedMemoryWrittenaAndRead()
 {
-	writeShMem(sharedMemory, sharedMemoryMessage, sharedMemoryMessageLength);
-	char * readMessage = calloc(sharedMemoryMessageLength, sizeof(char));
-	readShMem(sharedMemory, readMessage, sharedMemoryMessageLength);
-	int response = 1;
-	
-	if(strcmp(readMessage, sharedMemoryMessage) != 0)
-		response = 0;
+	pid_t child = fork();
+	if(child == 0)
+	{
+		sharedMemoryADT shm = sharedMemoryCreator(sharedMemoryId, sharedMemorySize,
+		sharedMemoryFlags);
+		writeShMem(shm, sharedMemoryMessage, sharedMemoryMessageLength);
+		closeShMem(shm);
+		exit(0);
 
-	//free(readMessage);
-	return response;
+	}
+	else
+	{
+		wait(NULL);
+		sharedMemoryADT shm2 = openShMem(sharedMemoryId, O_RDONLY);
+		char readMessage[sharedMemoryMessageLength];
+		readShMem(shm2, readMessage, sharedMemoryMessageLength);
+		int response = 1;
+		if(strcmp(readMessage, sharedMemoryMessage) != 0)
+			response = 0;
+		return response;
+	}	
+
+	return 0;
+
 }
 
 
