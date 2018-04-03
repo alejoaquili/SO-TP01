@@ -11,11 +11,12 @@
 #include "errorslib.h"
 #include "sharedMemory.h"
 
+#include <errno.h>
+
 #define MAX_NAME 14
 
 typedef struct sharedMemoryCDT {
     sem_t * semaphore;
-    void * pointer;
     int fd;
     int id;
     int memSize;
@@ -41,11 +42,6 @@ sharedMemoryADT sharedMemoryCreator(const int id, const long memSize,
 
     shm->fd = shm_open(shm->shmName, flags | O_CREAT, 0777);
     checkFail(shm->fd, "shm_open() Failed");
-    shm->pointer = mmap(NULL, memSize, PROT_READ, MAP_SHARED, 
-                                                            shm->fd, (off_t)0);
-    checkIsNotNull(shm->pointer," Null shmPointer");
-    if(shm->pointer == MAP_FAILED)
-        fail("mmap() Failed");
     return shm;
 }
 
@@ -62,8 +58,6 @@ int getShMemFd(sharedMemoryADT shm)
 
 void deleteShMem(sharedMemoryADT shm)
 {
-    checkIsNotNull(shm->pointer, "Null shm pointer");
-    munmap(shm->pointer, shm->memSize);
     shm_unlink(shm->shmName);
     sem_unlink(shm->semName);
     freeSpace(3, shm->shmName, shm->semName, shm);
@@ -75,7 +69,6 @@ sharedMemoryADT openShMem(const int id, const long flags)
     shm->id = id;
     shm->shmName = calloc(MAX_NAME, sizeof(char));
     sprintf(shm->shmName, "/shm%d", id);
-    shm->pointer = NULL;
     
     shm->semaphore = openSemaphore(shm);
     checkIsNotNull(shm->semaphore, "sem_open() Failed");
@@ -86,7 +79,6 @@ sharedMemoryADT openShMem(const int id, const long flags)
 
 void closeShMem(sharedMemoryADT shm)
 {
-    checkIsNull(shm->pointer, "closeShMem() Failed, you must use deletShm()");
     freeSpace(3, shm->shmName, shm->semName, shm);
 }
 
