@@ -13,7 +13,7 @@ typedef struct messageQueueCDT {
 } messageQueueCDT;
 
 
-messageQueueADT messageQueueCreator(const char* name, const long flagsMQ,
+messageQueueADT messageQueueCreator(const char * name, const long flagsMQ,
 									 	 const long maxMsg, const long msgSize)
 {	
 	messageQueueADT mq = malloc(sizeof(messageQueueCDT));
@@ -25,13 +25,13 @@ messageQueueADT messageQueueCreator(const char* name, const long flagsMQ,
 	return mq;
 }
 
-void deleteMQ(char* name)
+void deleteMQ(char * name)
 {
 	int result = mq_unlink(name);
 	checkFail(result, "mq_unlink() Failed");
 }
 
-messageQueueADT openMQ(const char* name, const long flagsMQ)
+messageQueueADT openMQ(const char * name, const long flagsMQ)
 {
 	messageQueueADT mq = malloc(sizeof(messageQueueCDT));
 
@@ -51,13 +51,13 @@ void closeMQ(messageQueueADT mq)
 	free(mq);
 }
 
-void enqueueMessage(messageQueueADT mq, const char* msg)
+void enqueueMessage(messageQueueADT mq, const char * msg)
 {
 	int result = mq_send(mq->descriptor, msg, mq->attributes.mq_msgsize, 0);
 	checkFail(result, "mq_send() Failed");
 }
 
-void enqueueMessages(messageQueueADT mq, char** msgs, const int qty) 
+void enqueueMessages(messageQueueADT mq, char ** msgs, const int qty) 
 {
 	for(int i = 0 ; i < qty; i++)
 	{
@@ -65,7 +65,7 @@ void enqueueMessages(messageQueueADT mq, char** msgs, const int qty)
 	}
 }
 
-ssize_t readMessage(messageQueueADT mq, char* buffer, unsigned int* priority)
+ssize_t readMessage(messageQueueADT mq, char * buffer, unsigned int * priority)
 {
 	return mq_receive(mq->descriptor, buffer, mq->attributes.mq_msgsize, 
 																	 priority);

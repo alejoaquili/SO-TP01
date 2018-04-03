@@ -6,9 +6,9 @@
 #include "errorslib.h"
 #include "processlib.h"
 
-pid_t * childFactory(int qty, char* childName)
+pid_t * childFactory(int qty, char * childName)
 {
-	pid_t* children = malloc(qty * sizeof(pid_t*));
+	pid_t * children = malloc(qty * sizeof(pid_t*));
 
 	for (int i = 0; i < qty; i++)
 	{ 
@@ -25,9 +25,9 @@ pid_t * childFactory(int qty, char* childName)
 	return children;
 }
 
-pid_t * childFactoryWithArgs(int qty, char* childPath, char** args)
+pid_t * childFactoryWithArgs(int qty, char * childPath, char ** args)
 {
-	pid_t* children = malloc(qty * sizeof(pid_t*));
+	pid_t * children = malloc(qty * sizeof(pid_t*));
 
 	for (int i = 0; i < qty; i++)
 	{ 
@@ -71,7 +71,7 @@ void freeSpace(int qty, ...)
     va_start(args, qty);
 
     for (int i = 0; i < qty; i++)
-        free(va_arg(args, void*));
+        free(va_arg(args, void *));
 
     va_end(args);
 }

@@ -4,7 +4,7 @@
 #include <sys/select.h>
 #include "errorslib.h"
 #include "applicationProcess.h"
-#include "sharedMemory.h"
+#include "viewProcess.h"
 #include "processlib.h"
 
 int main(int argc, char * argv[])
@@ -15,7 +15,7 @@ int main(int argc, char * argv[])
 	sharedMemoryADT shm = openShMem(id, O_RDONLY);
 	fd_set fdReadSet = createASetOfFds(1, getShMemFd(shm));
 
-    char* buffer;
+    char * buffer;
     do
     {
 		char newBuffer[MSG_SIZE];
@@ -28,7 +28,7 @@ int main(int argc, char * argv[])
 	return 0;
 }
 
-int readTheNextHash(sharedMemoryADT shm, char* buffer, fd_set fdReadSet)
+int readTheNextHash(sharedMemoryADT shm, char * buffer, fd_set fdReadSet)
 {
     waitForFds(getShMemFd(shm), fdReadSet);
 
@@ -38,7 +38,7 @@ int readTheNextHash(sharedMemoryADT shm, char* buffer, fd_set fdReadSet)
 	return readBytes;
 }
 
-void printTheHash(char* buffer, int readBytes)
+void printTheHash(char * buffer, int readBytes)
 {
 	if (readBytes > 0 && buffer[0] != (char)EOF)
 	{

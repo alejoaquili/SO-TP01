@@ -19,7 +19,7 @@ int main(int argc, char * argv[])
 	while((bytesRead = readMessage(mqFiles, fileToHash, NULL)) >= 0)
 	{
 		char hashedFile[MSG_SIZE];
-		hashTheFile(bytesRead, fileToHash, hashedFile);
+		hashTheFile(fileToHash, hashedFile);
 		sendTheHash(hashedFile);
 	}
 	
@@ -29,7 +29,7 @@ int main(int argc, char * argv[])
 	return 0;
 }
 
-void sendTheHash(char* hashedFile)
+void sendTheHash(char * hashedFile)
 {
 	messageQueueADT mqHashes;
 	mqHashes = openMQ(QUEUE_HASH_STORAGE, O_WRONLY);
@@ -37,7 +37,7 @@ void sendTheHash(char* hashedFile)
 	closeMQ(mqHashes);
 }
 
-void hashTheFile(ssize_t bytesRead, char* fileToHash, char* buffer)
+void hashTheFile(char * fileToHash, char * buffer)
 {
 	pid_t child;
 	int fd[2];
@@ -53,7 +53,7 @@ void hashTheFile(ssize_t bytesRead, char* fileToHash, char* buffer)
 		parentProcess(fd, fileToHash, buffer);
 }
 
-void parentProcess(int * fd, char* fileToHash, char* buffer)
+void parentProcess(int * fd, char * fileToHash, char * buffer)
 {
 	char buffer2[MSG_SIZE], hash[HASH_SIZE];
 

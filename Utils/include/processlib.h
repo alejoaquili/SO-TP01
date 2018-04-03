@@ -3,9 +3,9 @@
 
 #include <sys/select.h>
 
-pid_t * childFactory(int qty, char* childName);
+pid_t * childFactory(int qty, char * childName);
 
-pid_t * childFactoryWithArgs(int qty, char* childPath, char** args);
+pid_t * childFactoryWithArgs(int qty, char * childPath, char ** args);
 
 fd_set createASetOfFds(int qty, ...);
 

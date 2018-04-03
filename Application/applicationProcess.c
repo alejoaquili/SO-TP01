@@ -11,11 +11,10 @@
 #include "sharedMemory.h"
 
 void checkMaxMsgQueue(int qty);
-void enqueueFiles(char** nameFiles, long qty);
-void readHashes(sharedMemoryADT shm, FILE * outputFile);
+void enqueueFiles(char ** nameFiles, long qty);
 void recieveHashes(messageQueueADT mqHashes, sharedMemoryADT shm, long qty, 
-															FILE * outputFile);	
-void readAHash(sharedMemoryADT shm, char* buffer);
+															FILE * outputFile);
+void readAHash(char * buffer);
 void shareAHash(sharedMemoryADT shm, FILE * outputFile, char* fileHashed);
 void setASentinelInShMem(sharedMemoryADT shm);
 
@@ -24,8 +23,8 @@ int main(int argc, char * argv[])
 	checkMaxMsgQueue(argc - 1);
 
 	messageQueueADT mqHashes;
-	pid_t* children; 
-	int* childrenStatus = calloc(SLAVE_QTY, sizeof(int));
+	pid_t * children; 
+	int * childrenStatus = calloc(SLAVE_QTY, sizeof(int));
 	int memSize = (MSG_SIZE) * (argc -1), pid = getpid();
 
 	printf("applicationProcess PID = %d\n", pid);
@@ -70,13 +69,13 @@ void recieveHashes(messageQueueADT mqHashes, sharedMemoryADT shm, long qty,
     {
     	char buffer[MSG_SIZE];
     	waitForFds(mqFd, fdReadSet);
-    	readAHash(shm, buffer);
+    	readAHash(buffer);
     	shareAHash(shm, outputFile, buffer);
 	}
 	setASentinelInShMem(shm);
 }
 
-void readAHash(sharedMemoryADT shm, char* buffer)
+void readAHash(char * buffer)
 {
 	ssize_t bytesRead;
 	messageQueueADT mqHashes = openMQ(QUEUE_HASH_STORAGE, O_RDONLY);
@@ -86,7 +85,7 @@ void readAHash(sharedMemoryADT shm, char* buffer)
 	closeMQ(mqHashes);
 }
 
-void shareAHash(sharedMemoryADT shm, FILE * outputFile, char* fileHashed)
+void shareAHash(sharedMemoryADT shm, FILE * outputFile, char * fileHashed)
 {
 	ssize_t result;
 
@@ -108,7 +107,7 @@ void setASentinelInShMem(sharedMemoryADT shm)
 	free(sentinel);
 }
 
-void enqueueFiles(char** nameFiles, long qty)
+void enqueueFiles(char ** nameFiles, long qty)
 {
 	messageQueueADT mqFiles;
 	mqFiles = messageQueueCreator(QUEUE_FILE_NAME, O_WRONLY, qty, FILE_SIZE);

@@ -18,9 +18,9 @@ sharedMemoryADT openShMem(const int id, const long flags);
 
 void closeShMem(sharedMemoryADT shm);
 
-ssize_t writeShMem(sharedMemoryADT shm, const void* buffer , size_t nbytes);
+ssize_t writeShMem(sharedMemoryADT shm, const void * buffer , size_t nbytes);
 
-ssize_t readShMem(sharedMemoryADT shm, void* buffer , size_t nbytes);
+ssize_t readShMem(sharedMemoryADT shm, void * buffer , size_t nbytes);
 
 #endif
 

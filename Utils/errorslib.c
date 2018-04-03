@@ -3,7 +3,7 @@
 #include <math.h>
 #include "errorslib.h"
 
-void checkFail(int aNumber, char* msg)
+void checkFail(int aNumber, char * msg)
 {
 	if (aNumber < 0)
 	{
@@ -18,19 +18,19 @@ void fail(char * msg)
 	exit(1);
 }
 
-void checkIsNotNull(void * aPointer, char* msg)
+void checkIsNotNull(void * aPointer, char * msg)
 {
 	if(aPointer == (void *) 0)
 		fail(msg);
 }
 
-void checkIsNull(void * aPointer, char* msg)
+void checkIsNull(void * aPointer, char * msg)
 {
 	if(aPointer != (void *) 0)
 		fail(msg);
 }
 
-void checkAreEquals(int aNumber, int otherNumber, char* msg)
+void checkAreEquals(int aNumber, int otherNumber, char * msg)
 {
 	if(aNumber != otherNumber)
 		fail(msg);

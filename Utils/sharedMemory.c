@@ -14,17 +14,17 @@
 #define MAX_NAME 14
 
 typedef struct sharedMemoryCDT {
-    sem_t* semaphore;
-    void* pointer;
+    sem_t * semaphore;
+    void * pointer;
     int fd;
     int id;
     int memSize;
-    char* semName;
-    char* shmName;
+    char * semName;
+    char * shmName;
 } sharedMemoryCDT;
 
-sem_t* createSemaphore(sharedMemoryADT shm);
-sem_t* openSemaphore(sharedMemoryADT shm);
+sem_t * createSemaphore(sharedMemoryADT shm);
+sem_t * openSemaphore(sharedMemoryADT shm);
 
 
 sharedMemoryADT sharedMemoryCreator(const int id, const long memSize, 
@@ -35,6 +35,7 @@ sharedMemoryADT sharedMemoryCreator(const int id, const long memSize,
     shm->memSize = memSize;
     shm->shmName = calloc(MAX_NAME, sizeof(char));
     sprintf(shm->shmName, "/shm%d", id);
+    
     shm->semaphore = createSemaphore(shm);
     checkIsNotNull(shm->semaphore, "sem_open() Failed");
 
@@ -104,7 +105,7 @@ sem_t* openSemaphore(sharedMemoryADT shm)
     return sem_open(shm->semName, O_RDWR);
 }
 
-ssize_t writeShMem(sharedMemoryADT shm, const void* buffer , size_t nbytes)
+ssize_t writeShMem(sharedMemoryADT shm, const void * buffer , size_t nbytes)
 {
     sem_wait(shm->semaphore);
     ssize_t result = write(shm->fd, buffer, nbytes);
@@ -112,7 +113,7 @@ ssize_t writeShMem(sharedMemoryADT shm, const void* buffer , size_t nbytes)
     return result;
 }
 
-ssize_t readShMem(sharedMemoryADT shm, void* buffer , size_t nbytes)
+ssize_t readShMem(sharedMemoryADT shm, void * buffer , size_t nbytes)
 {
     sem_wait(shm->semaphore);
     ssize_t result = read(shm->fd, buffer, nbytes);
