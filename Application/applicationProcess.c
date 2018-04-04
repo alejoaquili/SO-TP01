@@ -48,13 +48,8 @@ int main(int argc, char * argv[])
 
 	freeSpace(2, children, childrenStatus);
 	closeMQ(mqHashes);
-	printf("All Child process finished.\n");
-
 	deleteMQ(QUEUE_FILE_NAME);
 	deleteMQ(QUEUE_HASH_STORAGE);
-
-	printf("Waiting for a view process ...\n");
-	sleep(5);
 	deleteShMem(shm);
 	return 0;
 }
@@ -92,8 +87,6 @@ void shareAHash(sharedMemoryADT shm, FILE * outputFile, char * fileHashed)
 	result = writeShMem(shm, fileHashed, MSG_SIZE);
 	checkFail(result, "writeShMem() Failed");
 	fprintf(outputFile, "%s\n", fileHashed);
-
-	printf("%s\n", fileHashed);
 }
 
 void setASentinelInShMem(sharedMemoryADT shm)
