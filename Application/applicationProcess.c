@@ -12,7 +12,7 @@
 
 void checkMaxMsgQueue(int qty);
 void enqueueFiles(char ** nameFiles, long qty);
-void recieveHashes(messageQueueADT mqHashes, sharedMemoryADT shm, long qty, 
+void manageHashes(messageQueueADT mqHashes, sharedMemoryADT shm, long qty, 
 															FILE * outputFile);
 void readAHash(char * buffer);
 void shareAHash(sharedMemoryADT shm, FILE * outputFile, char* fileHashed);
@@ -39,7 +39,7 @@ int main(int argc, char * argv[])
 	mqHashes = messageQueueCreator(QUEUE_HASH_STORAGE, O_RDONLY, argc - 1, 
 													 				 MSG_SIZE);
 	children = childFactory(SLAVE_QTY, SLAVE_PATH);
-	recieveHashes(mqHashes, shm, argc - 1, outputFile);
+	manageHashes(mqHashes, shm, argc - 1, outputFile);
 
 	fclose(outputFile);
 
@@ -59,7 +59,7 @@ int main(int argc, char * argv[])
 	return 0;
 }
 
-void recieveHashes(messageQueueADT mqHashes, sharedMemoryADT shm, long qty, 
+void manageHashes(messageQueueADT mqHashes, sharedMemoryADT shm, long qty, 
 															 FILE * outputFile)
 {
 	int mqFd = getMQDescriptor(mqHashes);
